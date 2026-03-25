@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>North Trading Journal</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f0f1a'/%3E%3Cpolyline points='3,27 9,19 15,23 21,12 29,16' fill='none' stroke='%237c6af7' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='29' cy='16' r='3' fill='%2322d47b'/%3E%3C/svg%3E"/>
+<style>
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#16161f;--bg4:#1c1c28;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#e8e8f0;--muted:#6e6e85;--hint:#2a2a42;
+  --accent:#7c6af7;--accent2:#a594ff;
+  --green:#22d47b;--gbg:rgba(34,212,123,.08);--gb:rgba(34,212,123,.22);
+  --red:#f25f5c;--rbg:rgba(242,95,92,.08);--rb:rgba(242,95,92,.22);
+  --amber:#f5a623;--abg:rgba(245,166,35,.08);--ab:rgba(245,166,35,.22);
+  --blue:#4fa3e0;
+  --r:9px;--rl:14px;
+  --font:sans-serif;--mono:monospace;
+}
+body.light{
+  --bg:#f4f4f8;--bg2:#ffffff;--bg3:#eceef3;--bg4:#e0e2ea;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.15);
+  --text:#1a1a2e;--muted:#6b6b80;--hint:#c5c5d8;
+  --accent:#6c5ce7;--accent2:#7c6af7;
+  --green:#17b85e;--gbg:rgba(23,184,94,.09);--gb:rgba(23,184,94,.25);
+  --red:#e03e3b;--rbg:rgba(224,62,59,.09);--rb:rgba(224,62,59,.25);
+  --amber:#d4880a;--abg:rgba(212,136,10,.09);--ab:rgba(212,136,10,.25);
+  --blue:#2e7fc0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--hint);border-radius:4px}
+
+/* ── Shell ── */
+.shell{display:grid;grid-template-columns:224px 1fr;min-height:100vh}
+
+/* ── Sidebar ── */
+.sb{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sb-top{padding:22px 18px 16px;border-bottom:1px solid var(--border)}
+.sb-mark{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-family:var(--mono);margin-bottom:3px}
+.sb-h{font-size:19px;font-weight:800;line-height:1.1}
+.sb-h em{color:var(--accent2);font-style:normal}
+
+/* DB status */
+.db-status{margin:10px 12px 0;padding:8px 11px;border-radius:var(--r);border:1px solid var(--border);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px}
+.db-status:hover{border-color:var(--border2);background:var(--bg3)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:all .3s}
+.dot.ok{background:var(--green);box-shadow:0 0 7px rgba(34,212,123,.6)}
+.dot.off{background:var(--muted)}
+.dot.busy{background:var(--amber);animation:blink .7s ease-in-out infinite}
+.dot.err{background:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.db-txt{font-size:10.5px;font-family:var(--mono);color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.db-txt strong{color:var(--text)}
+
+.sb-nav{padding:12px 8px;flex:1}
+.ns{font-size:9px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--hint);padding:0 10px;margin:12px 0 5px}
+.ns:first-child{margin-top:0}
+.nb{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .15s;border:none;background:transparent;width:100%;text-align:left}
+.nb:hover{background:var(--bg3);color:var(--text)}
+.nb.on{background:rgba(124,106,247,.13);color:var(--accent2)}
+.nb .ico{font-size:13px;width:15px;text-align:center;flex-shrink:0}
+
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);margin-top:auto}
+.sf{margin-bottom:9px}
+.sf-l{font-size:9px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em}
+.sf-v{font-size:16px;font-weight:700;font-family:var(--mono)}
+
+/* ── Main ── */
+.main{padding:28px 32px;overflow-y:auto;min-height:100vh}
+.page{display:none}.page.on{display:block}
+
+/* ── Setup screen ── */
+.setup{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:75vh;text-align:center;padding:40px 20px}
+.setup-icon{font-size:42px;margin-bottom:18px;opacity:.45}
+.setup h2{font-size:20px;font-weight:800;margin-bottom:7px}
+.setup p{font-size:12.5px;color:var(--muted);max-width:400px;line-height:1.7;margin-bottom:20px}
+.setup-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:22px 26px;max-width:480px;width:100%;text-align:left;margin-bottom:20px}
+.setup-step{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start}
+.setup-step:last-child{margin-bottom:0}
+.sn{width:22px;height:22px;border-radius:50%;background:rgba(124,106,247,.18);color:var(--accent2);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-family:var(--mono)}
+.st{font-size:12.5px;color:var(--muted);line-height:1.6}
+.st strong{color:var(--text)}
+.st code{background:var(--bg3);border:1px solid var(--border2);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:11px;color:var(--accent2)}
+.url-input-wrap{display:flex;gap:8px;width:100%;max-width:480px}
+.url-input-wrap .fi{flex:1}
+
+/* ── Page header ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap}
+.ph-l h2{font-size:24px;font-weight:800;line-height:1.1}
+.ph-l h2 em{color:var(--accent);font-style:normal}
+.ph-l p{font-size:13px;color:var(--muted);margin-top:3px}
+.ph-r{display:flex;gap:7px;flex-wrap:wrap;align-items:flex-start}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;border:none;outline:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border2)}.btn-ghost:hover{color:var(--text);background:var(--bg3)}
+.btn-danger{background:var(--rbg);color:var(--red);border:1px solid var(--rb)}.btn-danger:hover{background:rgba(242,95,92,.14)}
+.btn-sm{padding:5px 10px;font-size:11px}
+
+/* ── Stats ── */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:13px 15px;transition:border-color .2s}
+.sc:hover{border-color:var(--border2)}
+.sc-l{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--mono);margin-bottom:5px}
+.sc-v{font-size:22px;font-weight:800;font-family:var(--mono);line-height:1}
+.sc-s{font-size:9px;color:var(--hint);margin-top:2px}
+.cg{color:var(--green)}.cr{color:var(--red)}.ca{color:var(--amber)}.cb{color:var(--blue)}.cp{color:var(--accent2)}
+
+/* ── Panel ── */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:16px;overflow:hidden}
+.panel-h{padding:11px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-t{font-size:11.5px;font-weight:700}
+.panel-b{padding:16px 18px}
+
+/* ── Equity chart ── */
+.eq-wrap{height:140px}
+canvas{display:block}
+
+/* ── Form ── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.fgf,.fg .fgf{grid-column:1/-1}
+.fgrp{display:flex;flex-direction:column;gap:4px}
+.fl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--mono)}
+.fi{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border-color .15s;width:100%}
+.fi:focus{border-color:var(--accent)}
+.fi::placeholder{color:var(--hint)}
+select.fi{cursor:pointer}
+textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
+
+/* ── Chips ── */
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:3px 10px;border-radius:20px;border:1px solid var(--border);font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;user-select:none;font-family:var(--mono)}
+.chip:hover{border-color:var(--border2);color:var(--text)}
+.chip.cg{background:var(--gbg);border-color:var(--gb);color:var(--green)}
+.chip.cr{background:var(--rbg);border-color:var(--rb);color:var(--red)}
+.chip.ca{background:rgba(124,106,247,.1);border-color:rgba(124,106,247,.26);color:var(--accent2)}
+
+/* ── Result toggle ── */
+.rg{display:flex;gap:6px}
+.rb{flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;text-align:center;transition:all .15s;color:var(--muted);background:transparent}
+.rb:hover{border-color:var(--border2);color:var(--text)}
+.rb.rw{background:var(--gbg);border-color:var(--gb);color:var(--green)}
+.rb.rl{background:var(--rbg);border-color:var(--rb);color:var(--red)}
+.rb.rbe{background:var(--abg);border-color:var(--ab);color:var(--amber)}
+
+/* ── Form section ── */
+.fsec{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-family:var(--mono);margin:16px 0 9px;padding-bottom:6px;border-bottom:1px solid rgba(124,106,247,.15)}
+.fsec:first-child{margin-top:0}
+
+/* ── Score slider ── */
+.sbar-wrap{height:4px;background:var(--bg4);border-radius:2px;margin-top:4px;overflow:hidden}
+.sbar{height:100%;border-radius:2px;transition:width .3s,background .3s}
+
+/* ── Table ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;padding:9px 13px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--mono);border-bottom:1px solid var(--border)}
+.tbl td{padding:11px 13px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .trow:hover td{background:rgba(255,255,255,.02);cursor:pointer}
+.mono{font-family:var(--mono);font-size:13px}
+
+/* ── Badge ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-family:var(--mono)}
+.bw{background:var(--gbg);color:var(--green);border:1px solid var(--gb)}
+.bl{background:var(--rbg);color:var(--red);border:1px solid var(--rb)}
+.bb{background:var(--abg);color:var(--amber);border:1px solid var(--ab)}
+.bldn{background:rgba(79,163,224,.08);color:var(--blue);border:1px solid rgba(79,163,224,.22)}
+.bny{background:rgba(124,106,247,.08);color:var(--accent2);border:1px solid rgba(124,106,247,.22)}
+.blong{background:var(--gbg);color:var(--green);border:1px solid var(--gb)}
+.bshort{background:var(--rbg);color:var(--red);border:1px solid var(--rb)}
+
+/* ── Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(9px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:680px;max-height:92vh;overflow-y:auto;transform:translateY(14px);transition:transform .22s}
+.overlay.open .modal{transform:translateY(0)}
+.modal-h{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:2}
+.modal-h h3{font-size:14px;font-weight:800}
+.mcls{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.mcls:hover{background:var(--bg3);color:var(--text)}
+.modal-b{padding:20px 22px}
+.modal-f{padding:12px 22px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end}
+
+/* ── Empty ── */
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-i{font-size:30px;opacity:.25;margin-bottom:9px}
+.empty-m{font-size:12px}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;font-size:12px;display:flex;align-items:center;gap:9px;z-index:2000;transform:translateY(60px);opacity:0;transition:all .25s;pointer-events:none;max-width:320px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ── Analytics ── */
+.an-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.donut-wrap{display:flex;gap:18px;align-items:center}
+
+/* ── Loading overlay ── */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--muted);font-size:12px}
+.spinner{width:18px;height:18px;border:2px solid var(--hint);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:860px){
+  .shell{grid-template-columns:1fr}
+  .sb{position:static;height:auto}
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .main{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sb">
+  <div class="sb-top">
+    <div class="sb-mark">North Trading Journal</div>
+    <div class="sb-h">North <em>Journal</em></div>
+  </div>
+
+  <!-- DB Status -->
+  <div class="db-status" onclick="showSetup()" title="Click để thay đổi Google Sheet">
+    <span class="dot off" id="db-dot"></span>
+    <span class="db-txt" id="db-txt">Chưa kết nối Sheet</span>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="ns">Menu</div>
+    <button class="nb on" onclick="goPage('dashboard',this)"><span class="ico">◈</span>Dashboard</button>
+    <button class="nb"    onclick="goPage('journal',this)"><span class="ico">◎</span>Nhật ký lệnh</button>
+    <button class="nb"    onclick="goPage('analytics',this)"><span class="ico">◇</span>Phân tích</button>
+    <div class="ns">Thao tác</div>
+    <button class="nb"    onclick="openModal()"><span class="ico">＋</span>Thêm lệnh</button>
+    <button class="nb"    onclick="syncFromSheet()"><span class="ico">↺</span>Đồng bộ Sheet</button>
+    <button class="nb"    onclick="openSetupModal()"><span class="ico">⚙</span>Cài đặt</button>
+    <button class="nb"    onclick="toggleTheme()" id="theme-btn"><span class="ico">☀</span>Light Mode</button>
+  </nav>
+
+  <div class="sb-foot">
+    <div class="sf"><div class="sf-l">Tổng lệnh</div><div class="sf-v cp" id="sb-n">0</div></div>
+    <div class="sf"><div class="sf-l">Win Rate</div><div class="sf-v cg" id="sb-wr">—</div></div>
+    <div class="sf"><div class="sf-l">P&L (R)</div><div class="sf-v cb" id="sb-pnl">—</div></div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+<!-- DASHBOARD -->
+<div class="page on" id="page-dashboard">
+  <div class="ph">
+    <div class="ph-l"><h2>Dashboard <em>Overview</em></h2><p>Tổng quan hiệu suất — mọi chiến lược, mọi thị trường</p></div>
+    <div class="ph-r">
+      <button class="btn btn-ghost btn-sm" onclick="syncFromSheet()">↺ Sync Sheet</button>
+      <button class="btn btn-primary" onclick="openModal()">＋ Thêm lệnh</button>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="sc"><div class="sc-l">Tổng lệnh</div><div class="sc-v cp" id="st-n">0</div><div class="sc-s">đã ghi</div></div>
+    <div class="sc"><div class="sc-l">Win Rate</div><div class="sc-v cg" id="st-wr">—</div><div class="sc-s">cần ≥ 40%</div></div>
+    <div class="sc"><div class="sc-l">P&L (R)</div><div class="sc-v cb" id="st-pnl">—</div><div class="sc-s">tổng cộng</div></div>
+    <div class="sc"><div class="sc-l">Expectancy</div><div class="sc-v ca" id="st-exp">—</div><div class="sc-s">mỗi lệnh</div></div>
+    <div class="sc"><div class="sc-l">Profit Factor</div><div class="sc-v cp" id="st-pf">—</div><div class="sc-s">cần ≥ 1.5</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><span class="panel-t">Đường cong vốn (R)</span><span style="font-size:10.5px;color:var(--muted);font-family:var(--mono)" id="eq-lbl"></span></div>
+    <div class="panel-b" style="padding:12px 18px"><div class="eq-wrap"><canvas id="eqChart"></canvas></div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><span class="panel-t">Lệnh gần đây</span><button class="btn btn-ghost btn-sm" onclick="goPage('journal',document.querySelectorAll('.nb')[1])">Xem tất cả →</button></div>
+    <div id="recent-list"><div class="loading"><div class="spinner"></div>Đang tải...</div></div>
+  </div>
+</div>
+
+<!-- JOURNAL -->
+<div class="page" id="page-journal">
+  <div class="ph">
+    <div class="ph-l"><h2>Nhật ký <em>Lệnh</em></h2><p id="j-count">0 lệnh</p></div>
+    <div class="ph-r">
+      <select class="fi btn-sm" id="f-res" onchange="renderJournal()" style="width:auto"><option value="">Tất cả kết quả</option><option>Win</option><option>Loss</option><option>BE</option></select>
+      <select class="fi btn-sm" id="f-ses" onchange="renderJournal()" style="width:auto"><option value="">Tất cả session</option><option>London</option><option>NY Open</option><option>Asia</option></select>
+      <select class="fi btn-sm" id="f-str" onchange="renderJournal()" style="width:auto"><option value="">Tất cả strategy</option></select>
+      <button class="btn btn-primary" onclick="openModal()">＋ Thêm lệnh</button>
+    </div>
+  </div>
+  <div class="panel"><div id="j-list"><div class="loading"><div class="spinner"></div>Đang tải...</div></div></div>
+</div>
+
+<!-- ANALYTICS -->
+<div class="page" id="page-analytics">
+  <div class="ph"><div class="ph-l"><h2>Phân tích <em>Hiệu suất</em></h2><p>Edge thật sự từ dữ liệu Google Sheets</p></div></div>
+  <div class="an-grid">
+    <div class="panel">
+      <div class="panel-h"><span class="panel-t">Win / Loss / BE</span></div>
+      <div class="panel-b"><div class="donut-wrap"><canvas id="donut" width="90" height="90"></canvas><div id="donut-leg" style="flex:1;font-size:12px"></div></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><span class="panel-t">Theo Session</span></div>
+      <div class="panel-b" id="an-ses"><div class="empty-m" style="color:var(--muted)">Chưa đủ dữ liệu</div></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><span class="panel-t">Theo Strategy</span></div>
+    <div class="panel-b" id="an-strat"><div class="empty-m" style="color:var(--muted)">Chưa đủ dữ liệu</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><span class="panel-t">Lỗi thường gặp</span></div>
+    <div class="panel-b" id="an-err"><div class="empty-m" style="color:var(--muted)">Chưa có lỗi nào được ghi</div></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- ══ SETUP MODAL ══ -->
+<div class="overlay" id="setup-modal" onclick="closeOvl(event,'setup-modal')">
+<div class="modal" style="max-width:560px">
+  <div class="modal-h"><h3>⚙ Kết nối Google Sheets</h3><button class="mcls" onclick="closeSetup()">✕</button></div>
+  <div class="modal-b">
+
+    <div class="fsec" style="margin-top:0">Bước 1 — Tạo Google Sheet & Apps Script</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <div class="setup-step" style="display:flex;gap:10px">
+        <span class="sn" style="width:20px;height:20px;border-radius:50%;background:rgba(124,106,247,.18);color:var(--accent2);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)">1</span>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">Mở <strong style="color:var(--text)">Google Sheets</strong> → tạo spreadsheet mới → đặt tên tùy ý</div>
+      </div>
+      <div class="setup-step" style="display:flex;gap:10px">
+        <span class="sn" style="width:20px;height:20px;border-radius:50%;background:rgba(124,106,247,.18);color:var(--accent2);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)">2</span>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">Vào menu <strong style="color:var(--text)">Extensions → Apps Script</strong></div>
+      </div>
+      <div class="setup-step" style="display:flex;gap:10px">
+        <span class="sn" style="width:20px;height:20px;border-radius:50%;background:rgba(124,106,247,.18);color:var(--accent2);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)">3</span>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">Xóa code cũ → paste toàn bộ nội dung file <code style="background:var(--bg3);border:1px solid var(--border2);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:10.5px;color:var(--accent2)">Code.gs</code> vào → <strong style="color:var(--text)">Save</strong></div>
+      </div>
+      <div class="setup-step" style="display:flex;gap:10px">
+        <span class="sn" style="width:20px;height:20px;border-radius:50%;background:rgba(124,106,247,.18);color:var(--accent2);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)">4</span>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">Bấm <strong style="color:var(--text)">Deploy → New deployment</strong> → Type: <strong style="color:var(--text)">Web App</strong> → Execute as: <strong style="color:var(--text)">Me</strong> → Who has access: <strong style="color:var(--text)">Anyone</strong> → <strong style="color:var(--text)">Deploy</strong></div>
+      </div>
+      <div class="setup-step" style="display:flex;gap:10px">
+        <span class="sn" style="width:20px;height:20px;border-radius:50%;background:rgba(124,106,247,.18);color:var(--accent2);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)">5</span>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">Copy <strong style="color:var(--text)">Web App URL</strong> → paste vào ô dưới đây</div>
+      </div>
+    </div>
+
+    <div class="fsec">Bước 2 — Nhập Web App URL</div>
+    <div class="fgrp" style="margin-bottom:14px">
+      <label class="fl">Web App URL</label>
+      <input class="fi" id="setup-url" placeholder="https://script.google.com/macros/s/AKfycb.../exec"/>
+    </div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.6;background:var(--bg3);padding:10px 12px;border-radius:8px;border:1px solid var(--border)">
+      URL sẽ được lưu trong trình duyệt. Chỉ bạn mới thấy URL này. Không ai có thể xem dữ liệu của bạn trừ khi họ có link Google Sheet.
+    </div>
+
+  </div>
+  <div class="modal-f">
+    <button class="btn btn-ghost" onclick="closeSetup()">Hủy</button>
+    <button class="btn btn-primary" onclick="connectSheet()">Kết nối &amp; Test</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ ADD/EDIT MODAL ══ -->
+<div class="overlay" id="trade-modal" onclick="closeOvl(event,'trade-modal')">
+<div class="modal">
+  <div class="modal-h"><h3 id="modal-title">Ghi lệnh mới</h3><button class="mcls" onclick="closeTrade()">✕</button></div>
+  <div class="modal-b">
+
+    <div class="fsec">Thông tin cơ bản</div>
+    <div class="fg">
+      <div class="fgrp"><label class="fl">Cặp / Asset</label><input class="fi" id="f-pair" placeholder="XAUUSD, EURUSD, BTCUSD..."/></div>
+      <div class="fgrp"><label class="fl">Ngày</label><input class="fi" type="date" id="f-date"/></div>
+      <div class="fgrp"><label class="fl">Strategy</label><input class="fi" id="f-strat" placeholder="ICT, SMC, Breakout, PA..."/></div>
+      <div class="fgrp"><label class="fl">Timeframe</label>
+        <select class="fi" id="f-tf"><option>M1</option><option>M5</option><option selected>M15</option><option>M30</option><option>H1</option><option>H4</option><option>D1</option><option>W1</option></select>
+      </div>
+      <div class="fgrp"><label class="fl">Session</label>
+        <div class="chips" id="c-ses">
+          <span class="chip" onclick="cs1(this,'ses')">London</span>
+          <span class="chip" onclick="cs1(this,'ses')">NY Open</span>
+          <span class="chip" onclick="cs1(this,'ses')">Asia</span>
+          <span class="chip" onclick="cs1(this,'ses')">Khác</span>
+        </div>
+      </div>
+      <div class="fgrp"><label class="fl">Hướng</label>
+        <div class="chips" id="c-dir">
+          <span class="chip" onclick="cs1(this,'dir')">Long</span>
+          <span class="chip" onclick="cs1(this,'dir')">Short</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fsec">Giá & Kết quả</div>
+    <div class="fg4">
+      <div class="fgrp"><label class="fl">Entry</label><input class="fi" type="number" step="any" id="f-entry" placeholder="0.00"/></div>
+      <div class="fgrp"><label class="fl">Stop Loss</label><input class="fi" type="number" step="any" id="f-sl" placeholder="0.00"/></div>
+      <div class="fgrp"><label class="fl">Take Profit</label><input class="fi" type="number" step="any" id="f-tp" placeholder="0.00"/></div>
+      <div class="fgrp"><label class="fl">Exit Price</label><input class="fi" type="number" step="any" id="f-exit" placeholder="0.00"/></div>
+    </div>
+    <div class="fg3" style="margin-top:12px">
+      <div class="fgrp"><label class="fl">Lot</label><input class="fi" type="number" step="any" id="f-lot" placeholder="0.01"/></div>
+      <div class="fgrp"><label class="fl">Risk %</label><input class="fi" type="number" step="0.1" id="f-risk" placeholder="1.0"/></div>
+      <div class="fgrp"><label class="fl">R:R Kế hoạch</label><input class="fi" type="number" step="0.1" id="f-rrp" placeholder="2.0"/></div>
+      <div class="fgrp"><label class="fl">R:R Thực tế</label><input class="fi" type="number" step="0.1" id="f-rra" placeholder="vd: 2.5"/></div>
+      <div class="fgrp"><label class="fl">Kết quả</label>
+        <div class="rg">
+          <button class="rb" onclick="pr(this,'W')">Win</button>
+          <button class="rb" onclick="pr(this,'L')">Loss</button>
+          <button class="rb" onclick="pr(this,'BE')">BE</button>
+        </div>
+      </div>
+      <div class="fgrp"><label class="fl">P&L (R)</label><input class="fi" type="number" step="0.1" id="f-pnl" placeholder="Win:+2.0 / Loss:-1.0"/></div>
+    </div>
+
+    <div class="fsec">Setup Quality</div>
+    <div class="fgrp" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between">
+        <label class="fl">Điểm setup</label>
+        <span style="font-size:10.5px;font-family:var(--mono)" id="sc-val">75%</span>
+      </div>
+      <input type="range" id="f-score" min="0" max="100" value="75" oninput="updSc(this.value)" style="width:100%;accent-color:var(--accent);margin:4px 0 2px"/>
+      <div class="sbar-wrap"><div class="sbar" id="sbar" style="width:75%;background:var(--green)"></div></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px" id="sc-lbl">Tốt</div>
+    </div>
+
+    <div class="fsec">Điều kiện & Lỗi</div>
+    <div class="fgrp" style="margin-bottom:10px">
+      <label class="fl">Điều kiện đáp ứng</label>
+      <div class="chips" id="c-ok" style="margin-top:4px">
+        <span class="chip" onclick="ctg(this,'ok')">HTF bias đúng</span>
+        <span class="chip" onclick="ctg(this,'ok')">Kill Zone</span>
+        <span class="chip" onclick="ctg(this,'ok')">Liquidity sweep</span>
+        <span class="chip" onclick="ctg(this,'ok')">ChoCH</span>
+        <span class="chip" onclick="ctg(this,'ok')">OB / FVG</span>
+        <span class="chip" onclick="ctg(this,'ok')">S&D zone</span>
+        <span class="chip" onclick="ctg(this,'ok')">Breakout retest</span>
+        <span class="chip" onclick="ctg(this,'ok')">Volume confirm</span>
+        <span class="chip" onclick="ctg(this,'ok')">RR ≥ 1:2</span>
+        <span class="chip" onclick="ctg(this,'ok')">News clear</span>
+      </div>
+    </div>
+    <div class="fgrp" style="margin-bottom:12px">
+      <label class="fl">Lỗi execution</label>
+      <div class="chips" id="c-err" style="margin-top:4px">
+        <span class="chip" onclick="ctg(this,'err')">Vào quá sớm</span>
+        <span class="chip" onclick="ctg(this,'err')">Ngược HTF</span>
+        <span class="chip" onclick="ctg(this,'err')">Ngoài Kill Zone</span>
+        <span class="chip" onclick="ctg(this,'err')">Move SL</span>
+        <span class="chip" onclick="ctg(this,'err')">Chốt lời sớm</span>
+        <span class="chip" onclick="ctg(this,'err')">FOMO</span>
+        <span class="chip" onclick="ctg(this,'err')">Revenge trade</span>
+        <span class="chip" onclick="ctg(this,'err')">Oversize</span>
+        <span class="chip" onclick="ctg(this,'err')">Bỏ SL</span>
+        <span class="chip" onclick="ctg(this,'err')">News bỏ qua</span>
+      </div>
+    </div>
+
+    <div class="fsec">Ghi chú</div>
+    <div class="fg">
+      <div class="fgrp"><label class="fl">Lý do vào lệnh</label><textarea class="fi" id="f-reason" placeholder="Setup trông như thế nào? Confluence?"></textarea></div>
+      <div class="fgrp"><label class="fl">Bài học</label><textarea class="fi" id="f-lesson" placeholder="Nếu làm lại sẽ làm gì khác?"></textarea></div>
+    </div>
+
+  </div>
+  <div class="modal-f">
+    <button class="btn btn-ghost" onclick="closeTrade()">Hủy</button>
+    <button class="btn btn-primary" id="save-btn" onclick="saveTrade()">
+      <span id="save-spinner" style="display:none" class="spinner" style="width:14px;height:14px"></span>
+      Lưu vào Sheet
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- ══ DETAIL MODAL ══ -->
+<div class="overlay" id="det-modal" onclick="closeOvl(event,'det-modal')">
+<div class="modal" style="max-width:540px">
+  <div class="modal-h"><h3 id="det-title">Chi tiết</h3><button class="mcls" onclick="closeDet()">✕</button></div>
+  <div class="modal-b" id="det-body"></div>
+  <div class="modal-f">
+    <button class="btn btn-danger btn-sm" id="det-del">Xóa</button>
+    <button class="btn btn-ghost btn-sm" id="det-edit">Sửa</button>
+    <button class="btn btn-ghost" onclick="closeDet()">Đóng</button>
+  </div>
+</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><span class="toast-dot" id="toast-dot"></span><span id="toast-msg"></span></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONFIG & STATE
+// ══════════════════════════════════════════════════════
+const LS_URL = 'tj_sheet_url';
+let API_URL  = localStorage.getItem(LS_URL) || '';
+let T        = [];   // local cache
+let selR     = '';
+let editId   = null;
+
+const $ = id => document.getElementById(id);
+const fmt = (v, t) => {
+  if (v == null || isNaN(v)) return '—';
+  if (t === 'pct') return Math.round(v * 100) + '%';
+  if (t === 'r')   return (v >= 0 ? '+' : '') + (+v).toFixed(1) + 'R';
+  if (t === 'r2')  return (v >= 0 ? '+' : '') + (+v).toFixed(2) + 'R';
+  return v;
+};
+const fmtDate = d => { if (!d) return '—'; const p = d.split('-'); return p[2]+'/'+p[1]; };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  const btn = $('theme-btn');
+  btn.querySelector('.ico').textContent = isLight ? '🌙' : '☀';
+  btn.childNodes[1].textContent = isLight ? 'Dark Mode' : 'Light Mode';
+  localStorage.setItem('tj_theme', isLight ? 'light' : 'dark');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  $('f-date').value = new Date().toISOString().split('T')[0];
+  if (localStorage.getItem('tj_theme') === 'light') {
+    document.body.classList.add('light');
+    const btn = $('theme-btn');
+    btn.querySelector('.ico').textContent = '🌙';
+    btn.childNodes[1].textContent = 'Dark Mode';
+  }
+  if (API_URL) { updateDbStatus('busy', 'Đang kết nối...'); syncFromSheet(); }
+  else showSetup();
+  window.addEventListener('resize', drawEquity);
+});
+
+// ══════════════════════════════════════════════════════
+//  DB STATUS
+// ══════════════════════════════════════════════════════
+function updateDbStatus(state, label) {
+  const dot  = $('db-dot');
+  const txt  = $('db-txt');
+  dot.className = 'dot ' + state;
+  txt.innerHTML = label;
+}
+
+// ══════════════════════════════════════════════════════
+//  API CALLS
+// ══════════════════════════════════════════════════════
+async function apiGet(params = {}) {
+  const url = new URL(API_URL);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
+  return res.json();
+}
+
+async function apiPost(body) {
+  // Apps Script: không set Content-Type header để tránh CORS preflight
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(body)
+  });
+  const text = await res.text();
+  try { return JSON.parse(text); }
+  catch(e) { throw new Error('Apps Script response không phải JSON: ' + text.slice(0,120)); }
+}
+
+// ── Sync: pull all data from Sheet ──────────────────────
+async function syncFromSheet() {
+  if (!API_URL) { showSetup(); return; }
+  updateDbStatus('busy', 'Đang đồng bộ...');
+  try {
+    const data = await apiGet({ action: 'list' });
+    if (!data.ok) throw new Error(data.error || 'Lỗi không xác định');
+    T = data.data || [];
+    updateDbStatus('ok', `<strong>${T.length} lệnh</strong> · Sheet đã kết nối`);
+    renderAll();
+    toast('✓ Đồng bộ xong — ' + T.length + ' lệnh', 'var(--green)');
+  } catch(e) {
+    updateDbStatus('err', 'Lỗi kết nối Sheet');
+    toast('✕ ' + e.message, 'var(--red)');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════
+function goPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  $('page-' + id).classList.add('on');
+  if (btn) btn.classList.add('on');
+  if (id === 'analytics') renderAnalytics();
+}
+
+// ══════════════════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════════════════
+function calcStats(arr) {
+  const n = arr.length; if (!n) return null;
+  const w = arr.filter(t => t.result === 'Win').length;
+  const l = arr.filter(t => t.result === 'Loss').length;
+  const b = arr.filter(t => t.result === 'BE').length;
+  const pnl = arr.reduce((a,t) => a + (parseFloat(t.pnl) || 0), 0);
+  const gw  = arr.filter(t => t.result === 'Win').reduce((a,t) => a + (parseFloat(t.pnl)||0), 0);
+  const gl  = arr.filter(t => t.result === 'Loss').reduce((a,t) => a + Math.abs(parseFloat(t.pnl)||0), 0);
+  return { n, w, l, b, wr: w/n, pnl, exp: pnl/n, pf: gl > 0 ? gw/gl : gw > 0 ? 999 : 0 };
+}
+
+function renderAll() {
+  const s = calcStats(T);
+  $('sb-n').textContent   = T.length;
+  $('sb-wr').textContent  = s ? fmt(s.wr,'pct') : '—';
+  $('sb-pnl').textContent = s ? fmt(s.pnl,'r')  : '—';
+  $('st-n').textContent   = T.length;
+  if (s) {
+    $('st-wr').textContent  = fmt(s.wr,'pct');  $('st-wr').className  = 'sc-v ' + (s.wr  >= 0.4 ? 'cg' : 'cr');
+    $('st-pnl').textContent = fmt(s.pnl,'r');   $('st-pnl').className = 'sc-v ' + (s.pnl >= 0   ? 'cb' : 'cr');
+    $('st-exp').textContent = fmt(s.exp,'r2');   $('st-exp').className = 'sc-v ' + (s.exp >= 0.5 ? 'ca' : 'cr');
+    $('st-pf').textContent  = s.pf >= 999 ? '∞' : s.pf.toFixed(2);
+  } else {
+    ['st-wr','st-pnl','st-exp','st-pf'].forEach(id => $(id).textContent = '—');
+  }
+  drawEquity();
+  renderRecent();
+  renderJournal();
+  updateStratFilter();
+}
+
+// ══════════════════════════════════════════════════════
+//  EQUITY CHART
+// ══════════════════════════════════════════════════════
+function drawEquity() {
+  const cv = $('eqChart'), wrap = cv.parentElement;
+  cv.width = wrap.offsetWidth || 580; cv.height = 140;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  if (!T.length) return;
+  const sorted = [...T].sort((a,b) => new Date(a.date) - new Date(b.date));
+  let curve = [0];
+  sorted.forEach(t => curve.push(curve[curve.length-1] + (parseFloat(t.pnl) || 0)));
+  const total = curve[curve.length-1];
+  $('eq-lbl').textContent = fmt(total,'r') + ' total';
+  const W=cv.width, H=cv.height, pad={t:10,b:18,l:6,r:6};
+  const iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+  const mn=Math.min(...curve), mx=Math.max(...curve), rng=mx-mn||1;
+  const px=i=>pad.l+i*(iW/(curve.length-1||1));
+  const py=v=>pad.t+iH-((v-mn)/rng)*iH;
+  ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=pad.t+(i/4)*iH;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();}
+  if(mn<0&&mx>0){const zy=py(0);ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pad.l,zy);ctx.lineTo(W-pad.r,zy);ctx.stroke();ctx.setLineDash([]);}
+  const pos=total>=0;
+  const g=ctx.createLinearGradient(0,pad.t,0,pad.t+iH);
+  g.addColorStop(0,pos?'rgba(34,212,123,0.18)':'rgba(242,95,92,0.18)');
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g; ctx.beginPath();
+  curve.forEach((v,i)=>i===0?ctx.moveTo(px(i),py(v)):ctx.lineTo(px(i),py(v)));
+  ctx.lineTo(px(curve.length-1),H-pad.b);ctx.lineTo(px(0),H-pad.b);ctx.closePath();ctx.fill();
+  ctx.strokeStyle=pos?'#22d47b':'#f25f5c'; ctx.lineWidth=2; ctx.lineJoin='round';
+  ctx.beginPath();curve.forEach((v,i)=>i===0?ctx.moveTo(px(i),py(v)):ctx.lineTo(px(i),py(v)));ctx.stroke();
+  const lx=px(curve.length-1),ly=py(curve[curve.length-1]);
+  ctx.fillStyle=pos?'#22d47b':'#f25f5c';ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);ctx.fill();
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER TRADES
+// ══════════════════════════════════════════════════════
+function trow(t, full=false) {
+  const rb = t.result==='Win'?'bw':t.result==='Loss'?'bl':'bb';
+  const sb = t.session==='London'?'bldn':'bny';
+  const db = t.direction==='Long'?'blong':'bshort';
+  const sc = t.score || 0;
+  const scC = sc>=75?'var(--green)':sc>=50?'var(--amber)':'var(--red)';
+  const pnl = parseFloat(t.pnl) || 0;
+  const pC  = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+  const errCnt = Array.isArray(t.errors) ? t.errors.length : (t.errors ? t.errors.split(';').filter(Boolean).length : 0);
+  return `<tr class="trow" onclick="showDet('${t.id}')">
+    <td class="mono" style="font-weight:700">${t.pair||'—'}</td>
+    <td class="mono" style="color:var(--muted);font-size:11px">${fmtDate(t.date)}</td>
+    <td style="font-size:11.5px;color:var(--accent2)">${t.strategy||'—'}</td>
+    ${full ? `<td style="font-size:10.5px;color:var(--muted)">${t.tf||'—'}</td>` : ''}
+    <td>${t.session?`<span class="badge ${sb}">${t.session}</span>`:'—'}</td>
+    <td>${t.direction?`<span class="badge ${db}">${t.direction}</span>`:'—'}</td>
+    ${full ? `<td class="mono" style="font-size:11px;color:var(--muted)">${t.lot!=null&&t.lot!==''?t.lot:'—'}</td>` : ''}
+    <td class="mono" style="font-weight:700;color:${pC}">${t.pnl!=null?fmt(pnl,'r'):'—'}</td>
+    <td><span style="font-family:var(--mono);font-size:9.5px;font-weight:700;color:${scC}">${sc}%</span></td>
+    ${full ? `<td style="font-size:10.5px;color:${errCnt>0?'var(--red)':'var(--green)'}">${errCnt>0?errCnt+' lỗi':'✓'}</td>` : ''}
+    <td><span class="badge ${rb}">${t.result||'—'}</span></td>
+  </tr>`;
+}
+
+function renderRecent() {
+  const el = $('recent-list');
+  const r  = [...T].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6);
+  if (!r.length) { el.innerHTML='<div class="empty"><div class="empty-i">◎</div><div class="empty-m">Chưa có lệnh. Thêm lệnh đầu tiên!</div></div>'; return; }
+  el.innerHTML = `<table class="tbl"><thead><tr><th>Cặp</th><th>Ngày</th><th>Strategy</th><th>Session</th><th>Dir</th><th>P&L</th><th>Score</th><th>Kết quả</th></tr></thead><tbody>${r.map(t=>trow(t)).join('')}</tbody></table>`;
+}
+
+function updateStratFilter() {
+  const sel = $('f-str'); if (!sel) return;
+  const strats = [...new Set(T.map(t=>t.strategy).filter(Boolean))];
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Tất cả strategy</option>' + strats.map(s=>`<option${s===cur?' selected':''}>${s}</option>`).join('');
+}
+
+function renderJournal() {
+  const fR = $('f-res')?.value||'', fS=$('f-ses')?.value||'', fSt=$('f-str')?.value||'';
+  let data = [...T].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if (fR)  data = data.filter(t => t.result === fR);
+  if (fS)  data = data.filter(t => t.session === fS);
+  if (fSt) data = data.filter(t => t.strategy === fSt);
+  $('j-count').textContent = `${data.length} lệnh`;
+  const el = $('j-list');
+  if (!data.length) { el.innerHTML='<div class="empty"><div class="empty-i">◎</div><div class="empty-m">Không tìm thấy lệnh.</div></div>'; return; }
+  el.innerHTML = `<table class="tbl"><thead><tr><th>Cặp</th><th>Ngày</th><th>Strategy</th><th>TF</th><th>Session</th><th>Dir</th><th>Lot</th><th>P&L</th><th>Score</th><th>Lỗi</th><th>Kết quả</th></tr></thead><tbody>${data.map(t=>trow(t,true)).join('')}</tbody></table>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  ANALYTICS
+// ══════════════════════════════════════════════════════
+function renderAnalytics() {
+  drawDonut();
+  // Session
+  const el1 = $('an-ses');
+  const sessions = ['London','NY Open','Asia','Khác'];
+  const rows = sessions.map(ses => {
+    const arr = T.filter(t => t.session === ses); if (!arr.length) return null;
+    const w = arr.filter(t => t.result === 'Win').length;
+    const wr = Math.round(w/arr.length*100);
+    const pnl = arr.reduce((a,t)=>a+(parseFloat(t.pnl)||0),0);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
+      <span style="font-weight:600">${ses}</span>
+      <span style="color:var(--muted)">${arr.length} lệnh</span>
+      <span style="font-family:var(--mono);color:${wr>=40?'var(--green)':'var(--red)'};font-weight:700">${wr}% WR</span>
+      <span style="font-family:var(--mono);color:${pnl>=0?'var(--green)':'var(--red)'}">${fmt(pnl,'r')}</span>
+    </div>`;
+  }).filter(Boolean);
+  el1.innerHTML = rows.length ? rows.join('') : '<div style="color:var(--muted);font-size:12px">Chưa đủ dữ liệu</div>';
+  // Strategy
+  const strats = [...new Set(T.map(t=>t.strategy).filter(Boolean))];
+  const el2 = $('an-strat');
+  if (!strats.length) { el2.innerHTML='<div style="color:var(--muted);font-size:12px">Chưa có dữ liệu</div>'; }
+  else el2.innerHTML = strats.map(str => {
+    const arr = T.filter(t=>t.strategy===str);
+    const w = arr.filter(t=>t.result==='Win').length;
+    const wr = Math.round(w/arr.length*100);
+    const pnl = arr.reduce((a,t)=>a+(parseFloat(t.pnl)||0),0);
+    return `<div style="display:flex;align-items:center;gap:14px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;flex-wrap:wrap">
+      <span style="font-weight:700;color:var(--accent2);min-width:130px">${str}</span>
+      <span style="color:var(--muted)">${arr.length} lệnh</span>
+      <span style="font-family:var(--mono);color:${wr>=40?'var(--green)':'var(--red)'};font-weight:700">${wr}% WR</span>
+      <span style="font-family:var(--mono);color:${pnl>=0?'var(--green)':'var(--red)'}; margin-left:auto">${fmt(pnl,'r')}</span>
+    </div>`;
+  }).join('');
+  // Errors
+  const allErr = T.flatMap(t => Array.isArray(t.errors) ? t.errors : (t.errors ? t.errors.split(';').map(e=>e.trim()).filter(Boolean) : []));
+  const freq = {}; allErr.forEach(e => freq[e] = (freq[e]||0)+1);
+  const sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]);
+  const el3 = $('an-err');
+  if (!sorted.length) { el3.innerHTML='<div style="color:var(--green);font-size:12px">Không có lỗi nào được ghi — tốt lắm!</div>'; return; }
+  const mx = sorted[0][1];
+  el3.innerHTML = sorted.map(([e,c])=>`<div style="margin-bottom:9px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px">
+      <span>${e}</span><span style="font-family:var(--mono);color:var(--red)">${c}</span>
+    </div>
+    <div style="height:3px;background:var(--bg4);border-radius:2px">
+      <div style="height:3px;background:var(--red);border-radius:2px;width:${Math.round(c/mx*100)}%;opacity:.6"></div>
+    </div>
+  </div>`).join('');
+}
+
+function drawDonut() {
+  const cv=$('donut'),ctx=cv.getContext('2d');ctx.clearRect(0,0,90,90);
+  const s=calcStats(T);
+  if(!s||!s.n){$('donut-leg').innerHTML='<div style="color:var(--muted);font-size:12px">Chưa có dữ liệu</div>';return;}
+  const slices=[{v:s.w,c:'#22d47b'},{v:s.l,c:'#f25f5c'},{v:s.b,c:'#f5a623'}].filter(sl=>sl.v>0);
+  let start=-Math.PI/2;const cx=45,cy=45,r=38,ir=24;
+  slices.forEach(sl=>{const a=(sl.v/s.n)*Math.PI*2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+a);ctx.closePath();ctx.fillStyle=sl.c;ctx.fill();start+=a;});
+  ctx.beginPath();ctx.arc(cx,cy,ir,0,Math.PI*2);ctx.fillStyle='#111118';ctx.fill();
+  ctx.fillStyle='#e8e8f0';ctx.font='700 10px "DM Mono"';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(Math.round(s.w/s.n*100)+'%',cx,cy);
+  $('donut-leg').innerHTML=`
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;font-size:11.5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;display:inline-block"></span><span style="color:var(--muted)">Win</span><span style="font-family:var(--mono);font-weight:700;margin-left:auto">${s.w}</span></div>
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;font-size:11.5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span><span style="color:var(--muted)">Loss</span><span style="font-family:var(--mono);font-weight:700;margin-left:auto">${s.l}</span></div>
+    <div style="display:flex;align-items:center;gap:7px;font-size:11.5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0;display:inline-block"></span><span style="color:var(--muted)">BE</span><span style="font-family:var(--mono);font-weight:700;margin-left:auto">${s.b}</span></div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  SETUP MODAL
+// ══════════════════════════════════════════════════════
+function showSetup()    { openSetupModal(); }
+function openSetupModal(){ $('setup-modal').classList.add('open'); $('setup-url').value = API_URL || ''; }
+function closeSetup()  { $('setup-modal').classList.remove('open'); }
+
+async function connectSheet() {
+  const url = $('setup-url').value.trim();
+  if (!url || !url.startsWith('https://script.google.com')) {
+    toast('URL không hợp lệ — phải bắt đầu bằng https://script.google.com', 'var(--red)'); return;
+  }
+  updateDbStatus('busy', 'Đang kiểm tra kết nối...');
+  try {
+    const testUrl = new URL(url);
+    testUrl.searchParams.set('action','list');
+    const res = await fetch(testUrl.toString());
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Script trả về lỗi');
+    API_URL = url;
+    localStorage.setItem(LS_URL, url);
+    T = data.data || [];
+    updateDbStatus('ok', `<strong>${T.length} lệnh</strong> · Sheet đã kết nối`);
+    renderAll();
+    closeSetup();
+    toast('✓ Kết nối thành công!', 'var(--green)');
+  } catch(e) {
+    updateDbStatus('err', 'Kết nối thất bại');
+    toast('✕ Không kết nối được: ' + e.message, 'var(--red)');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  TRADE MODAL
+// ══════════════════════════════════════════════════════
+function openModal(id=null) {
+  if (!API_URL) { showSetup(); return; }
+  editId = id;
+  $('modal-title').textContent = id ? 'Sửa lệnh' : 'Ghi lệnh mới';
+  $('save-btn').textContent = 'Lưu vào Sheet';
+  resetForm();
+  if (id) { const t=T.find(x=>x.id===id); if(t) fillForm(t); }
+  $('trade-modal').classList.add('open');
+}
+function closeTrade() { $('trade-modal').classList.remove('open'); }
+function closeOvl(e,id) { if(e.target.id===id) document.getElementById(id).classList.remove('open'); }
+
+function resetForm() {
+  selR='';
+  $('f-pair').value='';$('f-date').value=new Date().toISOString().split('T')[0];
+  $('f-strat').value='';$('f-tf').value='M15';
+  ['f-entry','f-sl','f-tp','f-exit','f-lot','f-risk','f-rrp','f-rra','f-pnl','f-reason','f-lesson'].forEach(id=>$(id).value='');
+  $('f-score').value=75; updSc(75);
+  document.querySelectorAll('.rb').forEach(b=>b.className='rb');
+  document.querySelectorAll('#c-ses .chip').forEach(c=>c.classList.remove('ca'));
+  document.querySelectorAll('#c-dir .chip').forEach(c=>c.classList.remove('ca'));
+  document.querySelectorAll('#c-ok .chip').forEach(c=>c.classList.remove('cg'));
+  document.querySelectorAll('#c-err .chip').forEach(c=>c.classList.remove('cr'));
+}
+
+function fillForm(t) {
+  $('f-pair').value=t.pair||'';$('f-date').value=t.date||'';$('f-strat').value=t.strategy||'';
+  $('f-tf').value=t.tf||'M15';$('f-entry').value=t.entry||'';$('f-sl').value=t.sl||'';
+  $('f-tp').value=t.tp||'';$('f-exit').value=t.exitPrice||'';$('f-lot').value=t.lot||'';
+  $('f-risk').value=t.risk||'';$('f-rrp').value=t.rrPlan||'';$('f-rra').value=t.rrActual||'';
+  $('f-pnl').value=t.pnl!=null?t.pnl:'';$('f-reason').value=t.reason||'';$('f-lesson').value=t.lesson||'';
+  $('f-score').value=t.score||75; updSc(t.score||75);
+  selR=t.result||'';
+  if(t.result) { const idx=t.result==='Win'?0:t.result==='Loss'?1:2; document.querySelectorAll('.rb')[idx]?.classList.add(t.result==='Win'?'rw':t.result==='Loss'?'rl':'rbe'); }
+  document.querySelectorAll('#c-ses .chip').forEach(c=>{if(c.textContent===t.session)c.classList.add('ca');});
+  document.querySelectorAll('#c-dir .chip').forEach(c=>{if(c.textContent===t.direction)c.classList.add('ca');});
+  const conds = Array.isArray(t.conditions) ? t.conditions : (t.conditions||'').split(';').map(x=>x.trim()).filter(Boolean);
+  const errs  = Array.isArray(t.errors)     ? t.errors     : (t.errors||'').split(';').map(x=>x.trim()).filter(Boolean);
+  conds.forEach(v=>document.querySelectorAll('#c-ok .chip').forEach(c=>{if(c.textContent===v)c.classList.add('cg');}));
+  errs.forEach(v=>document.querySelectorAll('#c-err .chip').forEach(c=>{if(c.textContent===v)c.classList.add('cr');}));
+}
+
+function cs1(el,g){document.querySelectorAll(`#c-${g} .chip`).forEach(c=>c.classList.remove('ca'));el.classList.toggle('ca');}
+function ctg(el,g){el.classList.toggle(g==='ok'?'cg':'cr');}
+function pr(btn,v){selR=v;document.querySelectorAll('.rb').forEach(b=>b.className='rb');btn.classList.add(v==='W'||v==='Win'?'rw':v==='L'||v==='Loss'?'rl':'rbe');}
+function updSc(v){v=parseInt(v);$('sc-val').textContent=v+'%';$('sbar').style.width=v+'%';$('sbar').style.background=v>=75?'var(--green)':v>=50?'var(--amber)':'var(--red)';$('sc-lbl').textContent=v>=75?'✓ Tốt':v>=50?'~ Trung bình':'✕ Yếu';$('sc-lbl').style.color=v>=75?'var(--green)':v>=50?'var(--amber)':'var(--red)';}
+
+async function saveTrade() {
+  const pair = $('f-pair').value.trim().toUpperCase();
+  const date = $('f-date').value;
+  if (!pair) { toast('Nhập cặp tiền / asset', 'var(--red)'); return; }
+  if (!date) { toast('Chọn ngày giao dịch', 'var(--red)'); return; }
+
+  const session   = document.querySelector('#c-ses .chip.ca')?.textContent || '';
+  const direction = document.querySelector('#c-dir .chip.ca')?.textContent || '';
+  const conditions= [...document.querySelectorAll('#c-ok .chip.cg')].map(c=>c.textContent);
+  const errors    = [...document.querySelectorAll('#c-err .chip.cr')].map(c=>c.textContent);
+
+  const trade = {
+    id: editId || uid(),
+    date, pair, strategy: $('f-strat').value.trim(), tf: $('f-tf').value,
+    session, direction,
+    entry:    parseFloat($('f-entry').value) || null,
+    sl:       parseFloat($('f-sl').value)    || null,
+    tp:       parseFloat($('f-tp').value)    || null,
+    exitPrice:parseFloat($('f-exit').value)  || null,
+    lot:      parseFloat($('f-lot').value)   || null,
+    risk:     parseFloat($('f-risk').value)  || null,
+    rrPlan:   parseFloat($('f-rrp').value)   || null,
+    rrActual: parseFloat($('f-rra').value)   || null,
+    result:   selR === 'W' ? 'Win' : selR === 'L' ? 'Loss' : selR === 'BE' ? 'BE' : selR,
+    pnl:      parseFloat($('f-pnl').value) !== undefined ? parseFloat($('f-pnl').value) : null,
+    score:    parseInt($('f-score').value),
+    conditions, errors,
+    reason:   $('f-reason').value.trim(),
+    lesson:   $('f-lesson').value.trim(),
+    updatedAt: new Date().toISOString()
+  };
+
+  // Optimistic update
+  if (editId) { const idx=T.findIndex(x=>x.id===editId); if(idx>=0) T[idx]=trade; }
+  else T.push(trade);
+  renderAll();
+  closeTrade();
+  updateDbStatus('busy', 'Đang ghi vào Sheet...');
+
+  try {
+    const action = editId ? 'update' : 'add';
+    const res = await apiPost({ action, trade, id: trade.id });
+    if (!res.ok) throw new Error(res.error || 'Lỗi khi ghi vào Sheet');
+    updateDbStatus('ok', `<strong>${T.length} lệnh</strong> · Sheet đã kết nối`);
+    toast('✓ Đã lưu vào Google Sheets', 'var(--green)');
+  } catch(e) {
+    updateDbStatus('err', 'Lỗi ghi Sheet — dữ liệu local vẫn còn');
+    toast('✕ Lỗi Sheet: ' + e.message + ' (dữ liệu vẫn còn local)', 'var(--amber)');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  DETAIL MODAL
+// ══════════════════════════════════════════════════════
+function showDet(id) {
+  const t=T.find(x=>x.id===id);if(!t)return;
+  const rb=t.result==='Win'?'bw':t.result==='Loss'?'bl':'bb';
+  const sc=t.score||0;
+  const scC=sc>=75?'var(--green)':sc>=50?'var(--amber)':'var(--red)';
+  const pnl=parseFloat(t.pnl)||0;
+  $('det-title').innerHTML=`${t.pair||'?'} <span class="badge ${rb}" style="margin-left:8px">${t.result||'—'}</span>`;
+  const dc=(lbl,val,c='var(--text)')=>`<div style="background:var(--bg3);border-radius:8px;padding:10px 12px"><div style="font-size:8.5px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">${lbl}</div><div style="font-size:12.5px;font-weight:600;color:${c}">${val}</div></div>`;
+  const conds = Array.isArray(t.conditions)?t.conditions:(t.conditions||'').split(';').map(x=>x.trim()).filter(Boolean);
+  const errs  = Array.isArray(t.errors)?t.errors:(t.errors||'').split(';').map(x=>x.trim()).filter(Boolean);
+  $('det-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      ${dc('Ngày',fmtDate(t.date))}${dc('Strategy',t.strategy||'—')}
+      ${dc('Session',t.session||'—')}${dc('Direction',t.direction||'—')}
+      ${dc('Timeframe',t.tf||'—')}${dc('Lot',t.lot||'—')}
+      ${dc('Entry',t.entry||'—')}${dc('Exit',t.exitPrice||'—')}
+      ${dc('RR Plan',t.rrPlan!=null?t.rrPlan+'x':'—')}${dc('RR Actual',t.rrActual!=null?t.rrActual+'x':'—')}
+      ${dc('P&L',t.pnl!=null?fmt(pnl,'r'):'—',pnl>=0?'var(--green)':'var(--red)')}
+      ${dc('Setup Score',sc+'%',scC)}
+    </div>
+    ${conds.length?`<div style="margin-bottom:10px"><div class="fl" style="margin-bottom:5px">Điều kiện</div><div class="chips">${conds.map(c=>`<span class="chip cg" style="pointer-events:none">${c}</span>`).join('')}</div></div>`:''}
+    ${errs.length?`<div style="margin-bottom:10px"><div class="fl" style="margin-bottom:5px">Lỗi</div><div class="chips">${errs.map(e=>`<span class="chip cr" style="pointer-events:none">${e}</span>`).join('')}</div></div>`:''}
+    ${t.reason?`<div style="margin-bottom:10px"><div class="fl" style="margin-bottom:4px">Lý do</div><div style="font-size:12px;background:var(--bg3);padding:9px 11px;border-radius:8px;color:var(--muted);line-height:1.6">${t.reason}</div></div>`:''}
+    ${t.lesson?`<div><div class="fl" style="margin-bottom:4px">Bài học</div><div style="font-size:12px;background:var(--bg3);padding:9px 11px;border-radius:8px;color:var(--muted);line-height:1.6">${t.lesson}</div></div>`:''}`;
+  $('det-del').onclick = async () => {
+    if(!confirm('Xóa lệnh này?'))return;
+    T=T.filter(x=>x.id!==id); renderAll(); closeDet();
+    updateDbStatus('busy','Đang xóa khỏi Sheet...');
+    try{const r=await apiPost({action:'delete',id});if(!r.ok)throw new Error(r.error);updateDbStatus('ok',`<strong>${T.length} lệnh</strong> · Sheet đã kết nối`);toast('✓ Đã xóa khỏi Sheet','var(--green)');}
+    catch(e){updateDbStatus('err','Lỗi xóa Sheet');toast('✕ '+e.message,'var(--red)');}
+  };
+  $('det-edit').onclick = () => { closeDet(); openModal(id); };
+  $('det-modal').classList.add('open');
+}
+function closeDet(){$('det-modal').classList.remove('open');}
+
+// ══════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════
+let toastTimer;
+function toast(msg, color='var(--text)') {
+  const el=$('toast'), dot=$('toast-dot'), txt=$('toast-msg');
+  dot.style.background=color; txt.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
