@@ -8,7 +8,8 @@ const HEADERS = [
   "id", "date", "pair", "strategy", "tf", "session", "direction",
   "entry", "sl", "tp", "exitPrice", "lot", "risk",
   "rrPlan", "rrActual", "result", "pnl", "score",
-  "conditions", "errors", "reason", "lesson", "updatedAt"
+  "conditions", "errors", "reason", "lesson", "updatedAt",
+  "accountId", "roundId"
 ];
 
 // ── JSON output ──────────────────────────────────────────
