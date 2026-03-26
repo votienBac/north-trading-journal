@@ -212,6 +212,44 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
   .stats{grid-template-columns:repeat(3,1fr)}
   .main{padding:16px}
 }
+
+/* ── Accounts page ── */
+.acc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:20px}
+.acc-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:border-color .2s}
+.acc-card:hover{border-color:var(--border2)}
+.acc-head{padding:13px 16px 11px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:9px}
+.acc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.acc-nm{font-size:14px;font-weight:700;line-height:1.2}
+.acc-sub{font-size:9.5px;color:var(--muted);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.acc-kpi{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border)}
+.acc-kpi-c{padding:9px 0;text-align:center}
+.acc-kpi-l{font-size:8.5px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.acc-kpi-v{font-size:16px;font-weight:800;font-family:var(--mono)}
+.acc-rlist{padding:10px 14px 12px}
+.acc-rl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--mono);margin-bottom:7px}
+.rnd-row{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:7px;cursor:pointer;transition:background .12s;margin-bottom:2px}
+.rnd-row:hover{background:var(--bg3)}
+.rph{padding:2px 7px;border-radius:10px;font-size:8.5px;font-weight:700;font-family:var(--mono);flex-shrink:0;border:1px solid transparent}
+.rph-p1{background:rgba(79,163,224,.1);color:var(--blue);border-color:rgba(79,163,224,.22)}
+.rph-p2{background:rgba(245,166,35,.1);color:var(--amber);border-color:rgba(245,166,35,.22)}
+.rph-live{background:rgba(34,212,123,.1);color:var(--green);border-color:rgba(34,212,123,.22)}
+.rph-pass{background:rgba(34,212,123,.12);color:var(--green);border-color:rgba(34,212,123,.3)}
+.rph-fail{background:rgba(242,95,92,.1);color:var(--red);border-color:rgba(242,95,92,.22)}
+.rnd-name{font-size:12px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rnd-cnt{font-size:10px;color:var(--muted);font-family:var(--mono);flex-shrink:0}
+.rnd-live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 5px rgba(34,212,123,.6);flex-shrink:0}
+.acc-footer{display:flex;gap:6px;padding:8px 14px;border-top:1px solid var(--border);justify-content:flex-end}
+/* Color picker */
+.cpick{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px}
+.copt{width:22px;height:22px;border-radius:50%;cursor:pointer;transition:transform .12s;border:2px solid transparent;flex-shrink:0}
+.copt:hover{transform:scale(1.18)}
+.copt.on{border-color:var(--text);transform:scale(1.15)}
+/* Account tag in journal table */
+.atag{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:10px;font-size:8.5px;font-weight:600;font-family:var(--mono);border:1px solid var(--border);color:var(--muted);background:var(--bg3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.atag-d{width:5px;height:5px;border-radius:50%;flex-shrink:0;display:inline-block}
+/* Round progress bar */
+.rnd-prog{height:3px;background:var(--bg4);border-radius:2px;margin-top:4px;overflow:hidden}
+.rnd-prog-b{height:100%;border-radius:2px;transition:width .4s}
 </style>
 </head>
 <body>
@@ -233,6 +271,7 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
   <nav class="sb-nav">
     <div class="ns">Menu</div>
     <button class="nb on" onclick="goPage('dashboard',this)"><span class="ico">◈</span>Dashboard</button>
+    <button class="nb"    onclick="goPage('accounts',this)"><span class="ico">◉</span>Tài khoản quỹ</button>
     <button class="nb"    onclick="goPage('journal',this)"><span class="ico">◎</span>Nhật ký lệnh</button>
     <button class="nb"    onclick="goPage('analytics',this)"><span class="ico">◇</span>Phân tích</button>
     <div class="ns">Thao tác</div>
@@ -283,6 +322,8 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
   <div class="ph">
     <div class="ph-l"><h2>Nhật ký <em>Lệnh</em></h2><p id="j-count">0 lệnh</p></div>
     <div class="ph-r">
+      <select class="fi btn-sm" id="fj-acc" onchange="onJournalAccChange()" style="width:auto"><option value="">Tất cả tài khoản</option></select>
+      <select class="fi btn-sm" id="fj-rnd" onchange="renderJournal()" style="width:auto"><option value="">Tất cả vòng</option></select>
       <select class="fi btn-sm" id="f-res" onchange="renderJournal()" style="width:auto"><option value="">Tất cả kết quả</option><option>Win</option><option>Loss</option><option>BE</option></select>
       <select class="fi btn-sm" id="f-ses" onchange="renderJournal()" style="width:auto"><option value="">Tất cả session</option><option>London</option><option>NY Open</option><option>Asia</option></select>
       <select class="fi btn-sm" id="f-str" onchange="renderJournal()" style="width:auto"><option value="">Tất cả strategy</option></select>
@@ -315,7 +356,75 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
   </div>
 </div>
 
+<!-- ACCOUNTS -->
+<div class="page" id="page-accounts">
+  <div class="ph">
+    <div class="ph-l"><h2>Tài khoản <em>Quỹ</em></h2><p>Quản lý prop firm accounts và các vòng thi challenge</p></div>
+    <div class="ph-r">
+      <button class="btn btn-primary" onclick="openAccModal()">＋ Thêm tài khoản</button>
+    </div>
+  </div>
+  <div id="acc-list"></div>
+</div>
+
 </main>
+</div>
+
+<!-- ══ ACCOUNT MODAL ══ -->
+<div class="overlay" id="acc-modal" onclick="closeOvl(event,'acc-modal')">
+<div class="modal" style="max-width:460px">
+  <div class="modal-h"><h3 id="acc-modal-title">Thêm tài khoản</h3><button class="mcls" onclick="closeAccModal()">✕</button></div>
+  <div class="modal-b">
+    <div class="fg">
+      <div class="fgrp fgf"><label class="fl">Tên tài khoản</label><input class="fi" id="a-name" placeholder="FTMO $100k #1, MyFundedFX $50k..."/></div>
+      <div class="fgrp"><label class="fl">Prop Firm</label><input class="fi" id="a-firm" placeholder="FTMO, E8, MyFundedFX, TFT..."/></div>
+      <div class="fgrp"><label class="fl">Số dư ($)</label><input class="fi" type="number" id="a-bal" placeholder="100000"/></div>
+      <div class="fgrp fgf"><label class="fl">Màu nhận diện</label>
+        <div class="cpick" id="color-pick">
+          <span class="copt on" style="background:#7c6af7" onclick="pickColor(this,'#7c6af7')"></span>
+          <span class="copt" style="background:#22d47b" onclick="pickColor(this,'#22d47b')"></span>
+          <span class="copt" style="background:#f25f5c" onclick="pickColor(this,'#f25f5c')"></span>
+          <span class="copt" style="background:#f5a623" onclick="pickColor(this,'#f5a623')"></span>
+          <span class="copt" style="background:#4fa3e0" onclick="pickColor(this,'#4fa3e0')"></span>
+          <span class="copt" style="background:#e879a0" onclick="pickColor(this,'#e879a0')"></span>
+          <span class="copt" style="background:#00d4aa" onclick="pickColor(this,'#00d4aa')"></span>
+          <span class="copt" style="background:#ff7f50" onclick="pickColor(this,'#ff7f50')"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-f">
+    <button class="btn btn-ghost" onclick="closeAccModal()">Hủy</button>
+    <button class="btn btn-primary" onclick="saveAccount()">Lưu tài khoản</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ ROUND MODAL ══ -->
+<div class="overlay" id="rnd-modal" onclick="closeOvl(event,'rnd-modal')">
+<div class="modal" style="max-width:460px">
+  <div class="modal-h"><h3 id="rnd-modal-title">Thêm vòng thi</h3><button class="mcls" onclick="closeRndModal()">✕</button></div>
+  <div class="modal-b">
+    <div class="fg">
+      <div class="fgrp"><label class="fl">Tên vòng</label><input class="fi" id="r-name" placeholder="Phase 1, Retry #2, Live..."/></div>
+      <div class="fgrp"><label class="fl">Giai đoạn</label>
+        <select class="fi" id="r-phase">
+          <option value="phase1">Phase 1 — Challenge</option>
+          <option value="phase2">Phase 2 — Verification</option>
+          <option value="live">Live — Funded</option>
+        </select>
+      </div>
+      <div class="fgrp"><label class="fl">Ngày bắt đầu</label><input class="fi" type="date" id="r-start"/></div>
+      <div class="fgrp"><label class="fl">Số dư ban đầu ($)</label><input class="fi" type="number" id="r-init" placeholder="100000"/></div>
+      <div class="fgrp"><label class="fl">Mục tiêu lợi nhuận (%)</label><input class="fi" type="number" id="r-target" placeholder="10" value="10"/></div>
+      <div class="fgrp"><label class="fl">Max Drawdown (%)</label><input class="fi" type="number" id="r-maxdd" placeholder="10" value="10"/></div>
+    </div>
+  </div>
+  <div class="modal-f">
+    <button class="btn btn-ghost" onclick="closeRndModal()">Hủy</button>
+    <button class="btn btn-primary" onclick="saveRound()">Lưu vòng thi</button>
+  </div>
+</div>
 </div>
 
 <!-- ══ SETUP MODAL ══ -->
@@ -371,6 +480,20 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
   <div class="modal-h"><h3 id="modal-title">Ghi lệnh mới</h3><button class="mcls" onclick="closeTrade()">✕</button></div>
   <div class="modal-b">
 
+    <div class="fsec" style="margin-top:0">Tài khoản &amp; Vòng thi</div>
+    <div class="fg" style="margin-bottom:4px">
+      <div class="fgrp"><label class="fl">Tài khoản quỹ</label>
+        <select class="fi" id="f-acc" onchange="updateRoundSel()">
+          <option value="">— Chọn tài khoản —</option>
+        </select>
+      </div>
+      <div class="fgrp"><label class="fl">Vòng thi</label>
+        <select class="fi" id="f-rnd">
+          <option value="">— Chọn vòng thi —</option>
+        </select>
+      </div>
+    </div>
+
     <div class="fsec">Thông tin cơ bản</div>
     <div class="fg">
       <div class="fgrp"><label class="fl">Cặp / Asset</label><input class="fi" id="f-pair" placeholder="XAUUSD, EURUSD, BTCUSD..."/></div>
@@ -397,13 +520,13 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
 
     <div class="fsec">Giá & Kết quả</div>
     <div class="fg4">
-      <div class="fgrp"><label class="fl">Entry</label><input class="fi" type="number" step="any" id="f-entry" placeholder="0.00"/></div>
-      <div class="fgrp"><label class="fl">Stop Loss</label><input class="fi" type="number" step="any" id="f-sl" placeholder="0.00"/></div>
+      <div class="fgrp"><label class="fl">Entry</label><input class="fi" type="number" step="any" id="f-entry" placeholder="0.00" oninput="calcAuto()"/></div>
+      <div class="fgrp"><label class="fl">Stop Loss</label><input class="fi" type="number" step="any" id="f-sl" placeholder="0.00" oninput="calcAuto()"/></div>
       <div class="fgrp"><label class="fl">Take Profit</label><input class="fi" type="number" step="any" id="f-tp" placeholder="0.00"/></div>
-      <div class="fgrp"><label class="fl">Exit Price</label><input class="fi" type="number" step="any" id="f-exit" placeholder="0.00"/></div>
+      <div class="fgrp"><label class="fl">Exit Price</label><input class="fi" type="number" step="any" id="f-exit" placeholder="0.00" oninput="calcAuto()"/></div>
     </div>
     <div class="fg3" style="margin-top:12px">
-      <div class="fgrp"><label class="fl">Lot</label><input class="fi" type="number" step="any" id="f-lot" placeholder="0.01"/></div>
+      <div class="fgrp"><label class="fl">Lot</label><input class="fi" type="number" step="any" id="f-lot" placeholder="0.01" oninput="calcAuto()"/></div>
       <div class="fgrp"><label class="fl">Risk %</label><input class="fi" type="number" step="0.1" id="f-risk" placeholder="1.0"/></div>
       <div class="fgrp"><label class="fl">R:R Kế hoạch</label><input class="fi" type="number" step="0.1" id="f-rrp" placeholder="2.0"/></div>
       <div class="fgrp"><label class="fl">R:R Thực tế</label><input class="fi" type="number" step="0.1" id="f-rra" placeholder="vd: 2.5"/></div>
@@ -415,6 +538,10 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
         </div>
       </div>
       <div class="fgrp"><label class="fl">P&L (R)</label><input class="fi" type="number" step="0.1" id="f-pnl" placeholder="Win:+2.0 / Loss:-1.0"/></div>
+    </div>
+    <div id="pnl-usd-wrap" style="display:none;margin-top:8px;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);display:none;align-items:center;justify-content:space-between">
+      <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-family:monospace">P&L ước tính ($)</span>
+      <span id="pnl-usd-val" style="font-family:monospace;font-size:14px;font-weight:700"></span>
     </div>
 
     <div class="fsec">Setup Quality</div>
@@ -514,6 +641,211 @@ const fmt = (v, t) => {
 const fmtDate = d => { if (!d) return '—'; const p = d.split('-'); return p[2]+'/'+p[1]; };
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
+// ══════════════════════════════════════════════════════
+//  ACCOUNTS & ROUNDS — State + CRUD
+// ══════════════════════════════════════════════════════
+let ACCOUNTS = JSON.parse(localStorage.getItem('tj_accounts') || '[]');
+let ROUNDS   = JSON.parse(localStorage.getItem('tj_rounds')   || '[]');
+let selAccColor = '#7c6af7';
+let editAccId   = null;
+let editRndAccId = null;
+let editRndId    = null;
+
+function saveAccountsLS() { localStorage.setItem('tj_accounts', JSON.stringify(ACCOUNTS)); }
+function saveRoundsLS()   { localStorage.setItem('tj_rounds',   JSON.stringify(ROUNDS));   }
+function getAccById(id)   { return ACCOUNTS.find(a => a.id === id); }
+function getRndById(id)   { return ROUNDS.find(r => r.id === id);   }
+function getRndsFor(accId){ return ROUNDS.filter(r => r.accountId === accId); }
+function tradesForFilter(accId, rndId) {
+  return T.filter(t => {
+    if (accId && t.accountId !== accId) return false;
+    if (rndId && t.roundId   !== rndId) return false;
+    return true;
+  });
+}
+
+// ── Account Modal ────────────────────────────────────
+function openAccModal(id=null) {
+  editAccId = id;
+  $('acc-modal-title').textContent = id ? 'Sửa tài khoản' : 'Thêm tài khoản';
+  const acc = id ? getAccById(id) : null;
+  $('a-name').value = acc?.name    || '';
+  $('a-firm').value = acc?.firm    || '';
+  $('a-bal').value  = acc?.balance || '';
+  selAccColor = acc?.color || '#7c6af7';
+  document.querySelectorAll('.copt').forEach(el => el.classList.toggle('on', el.style.background === selAccColor));
+  $('acc-modal').classList.add('open');
+}
+function closeAccModal() { $('acc-modal').classList.remove('open'); }
+
+function pickColor(el, color) {
+  selAccColor = color;
+  document.querySelectorAll('.copt').forEach(o => o.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function saveAccount() {
+  const name = $('a-name').value.trim();
+  if (!name) { toast('Nhập tên tài khoản', 'var(--red)'); return; }
+  if (editAccId) {
+    const acc = getAccById(editAccId);
+    if (acc) { acc.name=name; acc.firm=$('a-firm').value.trim(); acc.balance=parseFloat($('a-bal').value)||0; acc.color=selAccColor; }
+  } else {
+    ACCOUNTS.push({ id:uid(), name, firm:$('a-firm').value.trim(), balance:parseFloat($('a-bal').value)||0, color:selAccColor, createdAt:new Date().toISOString() });
+  }
+  saveAccountsLS(); closeAccModal(); renderAccounts(); updateAccFilters(); updateTradeAccSel();
+  toast('✓ Đã lưu tài khoản', 'var(--green)');
+}
+
+function deleteAcc(id) {
+  if (!confirm('Xóa tài khoản này? Các vòng thi liên quan cũng bị xóa (lệnh không bị ảnh hưởng).')) return;
+  ACCOUNTS = ACCOUNTS.filter(a => a.id !== id);
+  ROUNDS   = ROUNDS.filter(r => r.accountId !== id);
+  saveAccountsLS(); saveRoundsLS(); renderAccounts(); updateAccFilters(); updateTradeAccSel();
+  toast('Đã xóa tài khoản', 'var(--amber)');
+}
+
+// ── Round Modal ──────────────────────────────────────
+function openRndModal(accId, rndId=null) {
+  editRndAccId = accId; editRndId = rndId;
+  $('rnd-modal-title').textContent = rndId ? 'Sửa vòng thi' : 'Thêm vòng thi';
+  const rnd = rndId ? getRndById(rndId) : null;
+  $('r-name').value   = rnd?.name            || '';
+  $('r-phase').value  = rnd?.phase           || 'phase1';
+  $('r-start').value  = rnd?.startDate       || new Date().toISOString().split('T')[0];
+  $('r-init').value   = rnd?.initialBalance  || getAccById(accId)?.balance || '';
+  $('r-target').value = rnd?.targetPct       || 10;
+  $('r-maxdd').value  = rnd?.maxDD           || 10;
+  $('rnd-modal').classList.add('open');
+}
+function closeRndModal() { $('rnd-modal').classList.remove('open'); }
+
+function saveRound() {
+  const name = $('r-name').value.trim();
+  if (!name) { toast('Nhập tên vòng thi', 'var(--red)'); return; }
+  if (editRndId) {
+    const rnd = getRndById(editRndId);
+    if (rnd) { rnd.name=name; rnd.phase=$('r-phase').value; rnd.startDate=$('r-start').value; rnd.initialBalance=parseFloat($('r-init').value)||0; rnd.targetPct=parseFloat($('r-target').value)||10; rnd.maxDD=parseFloat($('r-maxdd').value)||10; }
+  } else {
+    ROUNDS.push({ id:uid(), accountId:editRndAccId, name, phase:$('r-phase').value, startDate:$('r-start').value, initialBalance:parseFloat($('r-init').value)||0, targetPct:parseFloat($('r-target').value)||10, maxDD:parseFloat($('r-maxdd').value)||10, status:'active', createdAt:new Date().toISOString() });
+  }
+  saveRoundsLS(); closeRndModal(); renderAccounts();
+  toast('✓ Đã lưu vòng thi', 'var(--green)');
+}
+
+function cycleRoundStatus(rndId) {
+  const rnd = getRndById(rndId); if (!rnd) return;
+  const cycle = ['active','passed','failed'];
+  rnd.status = cycle[(cycle.indexOf(rnd.status)+1) % cycle.length];
+  saveRoundsLS(); renderAccounts();
+  const lbl = {active:'Đang thi',passed:'Đã PASS ✓',failed:'Đã FAIL ✕'};
+  toast(lbl[rnd.status], rnd.status==='passed'?'var(--green)':rnd.status==='failed'?'var(--red)':'var(--amber)');
+}
+
+// ── Render Accounts Page ─────────────────────────────
+function renderAccounts() {
+  const el = $('acc-list'); if (!el) return;
+  if (!ACCOUNTS.length) {
+    el.innerHTML='<div class="empty"><div class="empty-i">◉</div><div class="empty-m">Chưa có tài khoản nào. Thêm tài khoản đầu tiên!</div></div>'; return;
+  }
+  const phCls  = { phase1:'rph-p1', phase2:'rph-p2', live:'rph-live' };
+  const phName = { phase1:'Phase 1', phase2:'Phase 2', live:'Live' };
+  const html = ACCOUNTS.map(acc => {
+    const rounds = getRndsFor(acc.id);
+    const trades = tradesForFilter(acc.id, null);
+    const s = calcStats(trades);
+    const roundsHtml = rounds.length
+      ? rounds.map(r => {
+          const rc = tradesForFilter(acc.id, r.id).length;
+          const cls = r.status==='passed'?'rph-pass':r.status==='failed'?'rph-fail':(phCls[r.phase]||'rph-p1');
+          const pnlR = tradesForFilter(acc.id, r.id).reduce((a,t)=>a+(parseFloat(t.pnl)||0),0);
+          const pnlColor = pnlR>=0?'var(--green)':'var(--red)';
+          return `<div class="rnd-row" onclick="filterByRound('${acc.id}','${r.id}')">
+            ${r.status==='active'?'<span class="rnd-live-dot"></span>':''}
+            <span class="rph ${cls}">${phName[r.phase]||r.phase}</span>
+            <span class="rnd-name">${r.name}</span>
+            <span class="rnd-cnt" style="color:${pnlColor}">${fmt(pnlR,'r')}</span>
+            <span class="rnd-cnt">${rc}L</span>
+            <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px;margin-left:2px" onclick="event.stopPropagation();cycleRoundStatus('${r.id}')" title="Đổi trạng thái">⟳</button>
+          </div>`;
+        }).join('')
+      : '<div style="font-size:12px;color:var(--hint);padding:3px 7px">Chưa có vòng thi — thêm vòng thi đầu tiên</div>';
+    return `<div class="acc-card">
+      <div class="acc-head">
+        <span class="acc-dot" style="background:${acc.color||'#7c6af7'}"></span>
+        <div style="flex:1">
+          <div class="acc-nm">${acc.name}</div>
+          <div class="acc-sub">${acc.firm||'Prop Firm'} · $${(acc.balance||0).toLocaleString()}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="padding:4px 10px" onclick="openRndModal('${acc.id}')">＋ Vòng</button>
+      </div>
+      <div class="acc-kpi">
+        <div class="acc-kpi-c"><div class="acc-kpi-l">Lệnh</div><div class="acc-kpi-v cp">${trades.length}</div></div>
+        <div class="acc-kpi-c"><div class="acc-kpi-l">Win Rate</div><div class="acc-kpi-v ${s&&s.wr>=0.4?'cg':'cr'}">${s?Math.round(s.wr*100)+'%':'—'}</div></div>
+        <div class="acc-kpi-c"><div class="acc-kpi-l">P&amp;L (R)</div><div class="acc-kpi-v ${s&&s.pnl>=0?'cg':'cr'}">${s?fmt(s.pnl,'r'):'—'}</div></div>
+      </div>
+      <div class="acc-rlist">
+        <div class="acc-rl">Vòng thi (${rounds.length})</div>
+        ${roundsHtml}
+      </div>
+      <div class="acc-footer">
+        <button class="btn btn-ghost btn-sm" onclick="openAccModal('${acc.id}')">Sửa</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAcc('${acc.id}')">Xóa</button>
+      </div>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="acc-grid">${html}</div>`;
+}
+
+// ── Account / Round selectors ────────────────────────
+function updateTradeAccSel() {
+  const sel = $('f-acc'); if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Chọn tài khoản —</option>' +
+    ACCOUNTS.map(a=>`<option value="${a.id}"${a.id===cur?' selected':''}>${a.name}</option>`).join('');
+  updateRoundSel();
+}
+
+function updateRoundSel() {
+  const accId = $('f-acc')?.value||'';
+  const sel   = $('f-rnd'); if (!sel) return;
+  const rounds = accId ? getRndsFor(accId) : [];
+  const active = rounds.find(r=>r.status==='active');
+  sel.innerHTML = '<option value="">— Chọn vòng thi —</option>' +
+    rounds.map(r=>`<option value="${r.id}"${r.id===(active?.id||'')&&!sel.dataset.keep?' selected':''}>${r.name}${r.status==='active'?' ●':r.status==='passed'?' ✓':' ✕'}</option>`).join('');
+}
+
+function updateAccFilters() {
+  const sel = $('fj-acc'); if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Tất cả tài khoản</option>' +
+    ACCOUNTS.map(a=>`<option value="${a.id}"${a.id===cur?' selected':''}>${a.name}</option>`).join('');
+  updateJournalRndFilter(cur);
+}
+
+function updateJournalRndFilter(accId='') {
+  const sel = $('fj-rnd'); if (!sel) return;
+  const cur = sel.value;
+  const rounds = accId ? getRndsFor(accId) : ROUNDS;
+  sel.innerHTML = '<option value="">Tất cả vòng</option>' +
+    rounds.map(r=>`<option value="${r.id}"${r.id===cur?' selected':''}>${r.name}</option>`).join('');
+}
+
+function onJournalAccChange() {
+  updateJournalRndFilter($('fj-acc')?.value||'');
+  renderJournal();
+}
+
+function filterByRound(accId, rndId) {
+  goPage('journal', document.querySelector('.nb[onclick*="journal"]'));
+  setTimeout(()=>{
+    const a=$('fj-acc'), r=$('fj-rnd');
+    if(a) a.value=accId;
+    updateJournalRndFilter(accId);
+    setTimeout(()=>{ if(r) r.value=rndId; renderJournal(); },30);
+  },30);
+}
+
 function toggleTheme() {
   const isLight = document.body.classList.toggle('light');
   const btn = $('theme-btn');
@@ -530,6 +862,8 @@ window.addEventListener('DOMContentLoaded', () => {
     btn.querySelector('.ico').textContent = '🌙';
     btn.childNodes[1].textContent = 'Dark Mode';
   }
+  updateTradeAccSel();
+  updateAccFilters();
   if (API_URL) { updateDbStatus('busy', 'Đang kết nối...'); syncFromSheet(); }
   else showSetup();
   window.addEventListener('resize', drawEquity);
@@ -592,6 +926,7 @@ function goPage(id, btn) {
   $('page-' + id).classList.add('on');
   if (btn) btn.classList.add('on');
   if (id === 'analytics') renderAnalytics();
+  if (id === 'accounts')  renderAccounts();
 }
 
 // ══════════════════════════════════════════════════════
@@ -626,6 +961,7 @@ function renderAll() {
   renderRecent();
   renderJournal();
   updateStratFilter();
+  updateAccFilters();
 }
 
 // ══════════════════════════════════════════════════════
@@ -675,6 +1011,11 @@ function trow(t, full=false) {
   const pnl = parseFloat(t.pnl) || 0;
   const pC  = pnl >= 0 ? 'var(--green)' : 'var(--red)';
   const errCnt = Array.isArray(t.errors) ? t.errors.length : (t.errors ? t.errors.split(';').filter(Boolean).length : 0);
+  const acc = t.accountId ? getAccById(t.accountId) : null;
+  const rnd = t.roundId   ? getRndById(t.roundId)   : null;
+  const accTag = acc
+    ? `<span class="atag"><span class="atag-d" style="background:${acc.color||'#7c6af7'}"></span>${rnd?rnd.name:acc.name}</span>`
+    : '—';
   return `<tr class="trow" onclick="showDet('${t.id}')">
     <td class="mono" style="font-weight:700">${t.pair||'—'}</td>
     <td class="mono" style="color:var(--muted);font-size:11px">${fmtDate(t.date)}</td>
@@ -686,6 +1027,7 @@ function trow(t, full=false) {
     <td class="mono" style="font-weight:700;color:${pC}">${t.pnl!=null?fmt(pnl,'r'):'—'}</td>
     <td><span style="font-family:var(--mono);font-size:9.5px;font-weight:700;color:${scC}">${sc}%</span></td>
     ${full ? `<td style="font-size:10.5px;color:${errCnt>0?'var(--red)':'var(--green)'}">${errCnt>0?errCnt+' lỗi':'✓'}</td>` : ''}
+    ${full ? `<td>${accTag}</td>` : ''}
     <td><span class="badge ${rb}">${t.result||'—'}</span></td>
   </tr>`;
 }
@@ -705,15 +1047,18 @@ function updateStratFilter() {
 }
 
 function renderJournal() {
-  const fR = $('f-res')?.value||'', fS=$('f-ses')?.value||'', fSt=$('f-str')?.value||'';
+  const fAcc=$('fj-acc')?.value||'', fRnd=$('fj-rnd')?.value||'';
+  const fR=$('f-res')?.value||'', fS=$('f-ses')?.value||'', fSt=$('f-str')?.value||'';
   let data = [...T].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  if (fR)  data = data.filter(t => t.result === fR);
-  if (fS)  data = data.filter(t => t.session === fS);
-  if (fSt) data = data.filter(t => t.strategy === fSt);
+  if (fAcc) data = data.filter(t => t.accountId === fAcc);
+  if (fRnd) data = data.filter(t => t.roundId   === fRnd);
+  if (fR)   data = data.filter(t => t.result    === fR);
+  if (fS)   data = data.filter(t => t.session   === fS);
+  if (fSt)  data = data.filter(t => t.strategy  === fSt);
   $('j-count').textContent = `${data.length} lệnh`;
   const el = $('j-list');
   if (!data.length) { el.innerHTML='<div class="empty"><div class="empty-i">◎</div><div class="empty-m">Không tìm thấy lệnh.</div></div>'; return; }
-  el.innerHTML = `<table class="tbl"><thead><tr><th>Cặp</th><th>Ngày</th><th>Strategy</th><th>TF</th><th>Session</th><th>Dir</th><th>Lot</th><th>P&L</th><th>Score</th><th>Lỗi</th><th>Kết quả</th></tr></thead><tbody>${data.map(t=>trow(t,true)).join('')}</tbody></table>`;
+  el.innerHTML = `<table class="tbl"><thead><tr><th>Cặp</th><th>Ngày</th><th>Strategy</th><th>TF</th><th>Session</th><th>Dir</th><th>Lot</th><th>P&L</th><th>Score</th><th>Lỗi</th><th>Tài khoản</th><th>Kết quả</th></tr></thead><tbody>${data.map(t=>trow(t,true)).join('')}</tbody></table>`;
 }
 
 // ══════════════════════════════════════════════════════
@@ -835,10 +1180,12 @@ function closeOvl(e,id) { if(e.target.id===id) document.getElementById(id).class
 
 function resetForm() {
   selR='';
+  updateTradeAccSel();
   $('f-pair').value='';$('f-date').value=new Date().toISOString().split('T')[0];
   $('f-strat').value='';$('f-tf').value='M15';
   ['f-entry','f-sl','f-tp','f-exit','f-lot','f-risk','f-rrp','f-rra','f-pnl','f-reason','f-lesson'].forEach(id=>$(id).value='');
   $('f-score').value=75; updSc(75);
+  $('pnl-usd-wrap').style.display='none';
   document.querySelectorAll('.rb').forEach(b=>b.className='rb');
   document.querySelectorAll('#c-ses .chip').forEach(c=>c.classList.remove('ca'));
   document.querySelectorAll('#c-dir .chip').forEach(c=>c.classList.remove('ca'));
@@ -847,6 +1194,7 @@ function resetForm() {
 }
 
 function fillForm(t) {
+  if (t.accountId && $('f-acc')) { $('f-acc').value=t.accountId; updateRoundSel(); $('f-rnd').dataset.keep='1'; setTimeout(()=>{ if(t.roundId&&$('f-rnd'))$('f-rnd').value=t.roundId; delete $('f-rnd').dataset.keep; },30); }
   $('f-pair').value=t.pair||'';$('f-date').value=t.date||'';$('f-strat').value=t.strategy||'';
   $('f-tf').value=t.tf||'M15';$('f-entry').value=t.entry||'';$('f-sl').value=t.sl||'';
   $('f-tp').value=t.tp||'';$('f-exit').value=t.exitPrice||'';$('f-lot').value=t.lot||'';
@@ -868,6 +1216,61 @@ function ctg(el,g){el.classList.toggle(g==='ok'?'cg':'cr');}
 function pr(btn,v){selR=v;document.querySelectorAll('.rb').forEach(b=>b.className='rb');btn.classList.add(v==='W'||v==='Win'?'rw':v==='L'||v==='Loss'?'rl':'rbe');}
 function updSc(v){v=parseInt(v);$('sc-val').textContent=v+'%';$('sbar').style.width=v+'%';$('sbar').style.background=v>=75?'var(--green)':v>=50?'var(--amber)':'var(--red)';$('sc-lbl').textContent=v>=75?'✓ Tốt':v>=50?'~ Trung bình':'✕ Yếu';$('sc-lbl').style.color=v>=75?'var(--green)':v>=50?'var(--amber)':'var(--red)';}
 
+function getContractInfo(pair) {
+  const p = (pair || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (/XAU|GOLD/.test(p))             return { size: 100,    quoteUSD: true  }; // Gold: 1 lot = 100 oz
+  if (/XAG|SILVER/.test(p))           return { size: 5000,   quoteUSD: true  }; // Silver: 1 lot = 5000 oz
+  if (/XPT|XPD/.test(p))              return { size: 100,    quoteUSD: true  };
+  if (/BTC|ETH|LTC|XRP|BNB/.test(p)) return { size: 1,      quoteUSD: true  }; // Crypto: 1 lot = 1 coin
+  if (/US30|NAS100|SPX|DAX|UK100|USTEC|JP225/.test(p)) return { size: 1, quoteUSD: true }; // Indices
+  if (p.startsWith('USD'))            return { size: 100000, quoteUSD: false }; // USD/JPY, USD/CHF etc — need /price
+  return                                     { size: 100000, quoteUSD: true  }; // EUR/USD, GBP/USD etc
+}
+
+function calcAuto() {
+  const entry = parseFloat($('f-entry').value);
+  const sl    = parseFloat($('f-sl').value);
+  const exit  = parseFloat($('f-exit').value);
+  if (!entry || !sl || !exit) return;
+
+  const riskDist = Math.abs(entry - sl);
+  if (riskDist === 0) return;
+
+  const dir    = document.querySelector('#c-dir .chip.ca')?.textContent || '';
+  const isLong = dir === 'Long' || (dir === '' && entry > sl);
+
+  const rawRR = isLong ? (exit - entry) / riskDist : (entry - exit) / riskDist;
+  $('f-rra').value = parseFloat(rawRR.toFixed(2));
+  $('f-pnl').value = parseFloat(rawRR.toFixed(2));
+
+  // auto-set result
+  const BE_THRESHOLD = 0.1;
+  let result = Math.abs(rawRR) <= BE_THRESHOLD ? 'BE' : rawRR > 0 ? 'W' : 'L';
+  const btnMap = { W: 0, L: 1, BE: 2 };
+  const btns = document.querySelectorAll('.rb');
+  btns.forEach(b => b.className = 'rb');
+  btns[btnMap[result]]?.classList.add(result === 'W' ? 'rw' : result === 'L' ? 'rl' : 'rbe');
+  selR = result;
+
+  // Forex monetary P&L
+  const lot  = parseFloat($('f-lot').value);
+  const wrap = $('pnl-usd-wrap');
+  if (!lot || lot <= 0) { wrap.style.display = 'none'; return; }
+
+  const pair = $('f-pair').value.trim();
+  const { size, quoteUSD } = getContractInfo(pair);
+  const priceDiff = isLong ? (exit - entry) : (entry - exit);
+  const usdPnl    = quoteUSD
+    ? priceDiff * lot * size
+    : (priceDiff / exit) * lot * size;
+
+  const usdEl = $('pnl-usd-val');
+  const sign  = usdPnl >= 0 ? '+' : '';
+  usdEl.textContent  = sign + usdPnl.toFixed(2) + ' USD';
+  usdEl.style.color  = usdPnl >= 0 ? 'var(--green)' : 'var(--red)';
+  wrap.style.display = 'flex';
+}
+
 async function saveTrade() {
   const pair = $('f-pair').value.trim().toUpperCase();
   const date = $('f-date').value;
@@ -883,6 +1286,8 @@ async function saveTrade() {
     id: editId || uid(),
     date, pair, strategy: $('f-strat').value.trim(), tf: $('f-tf').value,
     session, direction,
+    accountId: $('f-acc')?.value || null,
+    roundId:   $('f-rnd')?.value || null,
     entry:    parseFloat($('f-entry').value) || null,
     sl:       parseFloat($('f-sl').value)    || null,
     tp:       parseFloat($('f-tp').value)    || null,
@@ -933,6 +1338,7 @@ function showDet(id) {
   const conds = Array.isArray(t.conditions)?t.conditions:(t.conditions||'').split(';').map(x=>x.trim()).filter(Boolean);
   const errs  = Array.isArray(t.errors)?t.errors:(t.errors||'').split(';').map(x=>x.trim()).filter(Boolean);
   $('det-body').innerHTML=`
+    ${(()=>{const a=t.accountId?getAccById(t.accountId):null;const r=t.roundId?getRndById(t.roundId):null;return a?`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:12px"><span style="width:8px;height:8px;border-radius:50%;background:${a.color||'#7c6af7'};flex-shrink:0"></span><span style="font-size:12px;font-weight:600">${a.name}</span>${r?`<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">— ${r.name}</span>`:''}${r?.status==='active'?'<span class="rnd-live-dot" style="margin-left:4px"></span>':''}</div>`:'';})()}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
       ${dc('Ngày',fmtDate(t.date))}${dc('Strategy',t.strategy||'—')}
       ${dc('Session',t.session||'—')}${dc('Direction',t.direction||'—')}
