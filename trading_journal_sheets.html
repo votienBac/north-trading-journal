@@ -250,6 +250,33 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
 /* Round progress bar */
 .rnd-prog{height:3px;background:var(--bg4);border-radius:2px;margin-top:4px;overflow:hidden}
 .rnd-prog-b{height:100%;border-radius:2px;transition:width .4s}
+/* Market Analysis */
+.ma-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.ma-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:border-color .2s;cursor:pointer}
+.ma-card:hover{border-color:var(--border2)}
+.ma-head{padding:12px 15px 10px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border)}
+.ma-asset{font-size:15px;font-weight:800;font-family:var(--mono)}
+.ma-tf{font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:10px;background:rgba(124,106,247,.12);color:var(--accent2);border:1px solid rgba(124,106,247,.22)}
+.ma-date{font-size:10px;color:var(--muted);font-family:var(--mono);margin-left:auto}
+.bias-bull{background:var(--gbg);color:var(--green);border:1px solid var(--gb)}
+.bias-bear{background:var(--rbg);color:var(--red);border:1px solid var(--rb)}
+.bias-neut{background:var(--abg);color:var(--amber);border:1px solid var(--ab)}
+.ma-body{padding:11px 15px 13px}
+.ma-row{margin-bottom:8px}
+.ma-lbl{font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--mono);margin-bottom:3px}
+.ma-val{font-size:12px;color:var(--text);line-height:1.5}
+/* Blog */
+.blog-list{display:flex;flex-direction:column;gap:12px}
+.blog-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:border-color .2s;cursor:pointer}
+.blog-card:hover{border-color:var(--border2)}
+.blog-head{padding:14px 18px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.blog-title{font-size:15px;font-weight:700;line-height:1.3}
+.blog-meta{font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap;margin-top:2px}
+.blog-preview{padding:0 18px 14px;font-size:12.5px;color:var(--muted);line-height:1.7;border-top:0}
+.blog-tags{display:flex;flex-wrap:wrap;gap:4px;padding:0 18px 12px}
+.blog-tag{font-size:9.5px;font-weight:600;font-family:var(--mono);padding:2px 8px;border-radius:10px;background:rgba(124,106,247,.1);color:var(--accent2);border:1px solid rgba(124,106,247,.2)}
+/* Blog editor */
+#blog-content.fi{min-height:260px;font-size:13px;line-height:1.7;font-family:var(--font)}
 /* Emotion notes */
 .emo-entry{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:6px;border:1px solid var(--border)}
 .emo-moment{font-size:9.5px;font-weight:700;font-family:var(--mono);color:var(--accent2);text-transform:uppercase;letter-spacing:.07em;flex-shrink:0;min-width:100px;margin-top:2px;line-height:1.4}
@@ -280,6 +307,8 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
     <button class="nb"    onclick="goPage('accounts',this)"><span class="ico">◉</span>Tài khoản quỹ</button>
     <button class="nb"    onclick="goPage('journal',this)"><span class="ico">◎</span>Nhật ký lệnh</button>
     <button class="nb"    onclick="goPage('analytics',this)"><span class="ico">◇</span>Phân tích</button>
+    <button class="nb"    onclick="goPage('market',this)"><span class="ico">⬡</span>Phân tích thị trường</button>
+    <button class="nb"    onclick="goPage('blog',this)"><span class="ico">✍</span>Blog Trading</button>
     <div class="ns">Thao tác</div>
     <button class="nb"    onclick="openModal()"><span class="ico">＋</span>Thêm lệnh</button>
     <button class="nb"    onclick="syncFromSheet()"><span class="ico">↺</span>Đồng bộ Sheet</button>
@@ -371,6 +400,34 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
     </div>
   </div>
   <div id="acc-list"></div>
+</div>
+
+<!-- MARKET ANALYSIS -->
+<div class="page" id="page-market">
+  <div class="ph">
+    <div class="ph-l"><h2>Phân tích <em>Thị trường</em></h2><p>Nhật ký phân tích kỹ thuật theo asset &amp; khung giờ</p></div>
+    <div class="ph-r">
+      <select class="fi btn-sm" id="maf-asset" onchange="renderMarket()" style="width:auto"><option value="">Tất cả asset</option></select>
+      <select class="fi btn-sm" id="maf-tf" onchange="renderMarket()" style="width:auto">
+        <option value="">Tất cả TF</option>
+        <option>M5</option><option>M15</option><option>M30</option>
+        <option>H1</option><option>H4</option><option>D1</option><option>W1</option>
+      </select>
+      <button class="btn btn-primary" onclick="openMarketModal()">＋ Thêm phân tích</button>
+    </div>
+  </div>
+  <div id="ma-list"><div class="empty"><div class="empty-i">⬡</div><div class="empty-m">Chưa có phân tích nào</div></div></div>
+</div>
+
+<!-- BLOG -->
+<div class="page" id="page-blog">
+  <div class="ph">
+    <div class="ph-l"><h2>Blog <em>Trading</em></h2><p>Ghi lại suy nghĩ, chiến lược, tâm lý trong hành trình trading</p></div>
+    <div class="ph-r">
+      <button class="btn btn-primary" onclick="openBlogModal()">＋ Bài viết mới</button>
+    </div>
+  </div>
+  <div id="blog-list"><div class="empty"><div class="empty-i">✍</div><div class="empty-m">Chưa có bài viết nào</div></div></div>
 </div>
 
 </main>
@@ -502,8 +559,15 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
 
     <div class="fsec">Thông tin cơ bản</div>
     <div class="fg">
-      <div class="fgrp"><label class="fl">Cặp / Asset</label><input class="fi" id="f-pair" placeholder="XAUUSD, EURUSD, BTCUSD..."/></div>
-      <div class="fgrp"><label class="fl">Ngày</label><input class="fi" type="date" id="f-date"/></div>
+      <div class="fgrp"><label class="fl">Cặp / Asset</label>
+        <input class="fi" id="f-pair" placeholder="XAUUSD, BTCUSD..." list="pair-list" autocomplete="off"/>
+        <datalist id="pair-list">
+          <option value="XAUUSD"><option value="BTCUSD"><option value="ETHUSD">
+          <option value="EURUSD"><option value="GBPUSD"><option value="USDJPY">
+          <option value="GBPJPY"><option value="US30"><option value="NAS100"><option value="US500">
+        </datalist>
+      </div>
+      <div class="fgrp"><label class="fl">Ngày &amp; Giờ</label><input class="fi" type="datetime-local" id="f-date" step="1"/></div>
       <div class="fgrp"><label class="fl">Strategy</label><input class="fi" id="f-strat" placeholder="ICT, SMC, Breakout, PA..."/></div>
       <div class="fgrp"><label class="fl">Timeframe</label>
         <select class="fi" id="f-tf"><option>M1</option><option>M5</option><option selected>M15</option><option>M30</option><option>H1</option><option>H4</option><option>D1</option><option>W1</option></select>
@@ -646,6 +710,76 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
 </div>
 </div>
 
+<!-- ══ MARKET ANALYSIS MODAL ══ -->
+<div class="overlay" id="market-modal" onclick="closeOvl(event,'market-modal')">
+<div class="modal" style="max-width:620px">
+  <div class="modal-h"><h3 id="ma-modal-title">Thêm phân tích</h3><button class="mcls" onclick="closeMarketModal()">✕</button></div>
+  <div class="modal-b">
+    <div class="fsec" style="margin-top:0">Thông tin</div>
+    <div class="fg3">
+      <div class="fgrp">
+        <label class="fl">Asset</label>
+        <input class="fi" id="ma-asset" placeholder="XAUUSD, BTCUSD..." list="ma-pair-list" autocomplete="off"/>
+        <datalist id="ma-pair-list">
+          <option value="XAUUSD"><option value="BTCUSD"><option value="ETHUSD">
+          <option value="EURUSD"><option value="GBPUSD"><option value="USDJPY">
+          <option value="US30"><option value="NAS100">
+        </datalist>
+      </div>
+      <div class="fgrp">
+        <label class="fl">Timeframe</label>
+        <select class="fi" id="ma-tf">
+          <option>M5</option><option>M15</option><option>M30</option>
+          <option>H1</option><option selected>H4</option><option>D1</option><option>W1</option>
+        </select>
+      </div>
+      <div class="fgrp"><label class="fl">Ngày &amp; Giờ</label><input class="fi" type="datetime-local" id="ma-date" step="1"/></div>
+    </div>
+    <div class="fsec">Bias</div>
+    <div class="chips" id="ma-bias-chips" style="margin-bottom:4px">
+      <span class="chip" onclick="maBias(this,'Bullish')" style="background:var(--gbg);border-color:var(--gb);color:var(--green)">▲ Bullish</span>
+      <span class="chip" onclick="maBias(this,'Bearish')" style="background:var(--rbg);border-color:var(--rb);color:var(--red)">▼ Bearish</span>
+      <span class="chip" onclick="maBias(this,'Neutral')" style="background:var(--abg);border-color:var(--ab);color:var(--amber)">◆ Neutral</span>
+    </div>
+    <div class="fsec">Chi tiết phân tích</div>
+    <div class="fg">
+      <div class="fgrp"><label class="fl">Key Levels (hỗ trợ / kháng cự)</label><textarea class="fi" id="ma-levels" placeholder="2380 (kháng cự), 2350 (hỗ trợ mạnh), 2320..." style="min-height:58px"></textarea></div>
+      <div class="fgrp"><label class="fl">Confluence (các yếu tố hội tụ)</label><textarea class="fi" id="ma-confluences" placeholder="OB H4 tại 2350, FVG, Kill Zone 3h-5h..." style="min-height:58px"></textarea></div>
+      <div class="fgrp"><label class="fl">Invalidation (điều kiện hủy setup)</label><textarea class="fi" id="ma-invalidation" placeholder="Giá đóng cửa H4 trên 2390 thì bias đảo..." style="min-height:58px"></textarea></div>
+      <div class="fgrp"><label class="fl">Ghi chú thêm</label><textarea class="fi" id="ma-notes" placeholder="Bối cảnh vĩ mô, news, quan sát khác..." style="min-height:58px"></textarea></div>
+    </div>
+  </div>
+  <div class="modal-f">
+    <button class="btn btn-danger btn-sm" id="ma-del-btn" style="display:none" onclick="deleteMarket()">Xóa</button>
+    <button class="btn btn-ghost" onclick="closeMarketModal()">Hủy</button>
+    <button class="btn btn-primary" onclick="saveMarket()">Lưu phân tích</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ BLOG MODAL ══ -->
+<div class="overlay" id="blog-modal" onclick="closeOvl(event,'blog-modal')">
+<div class="modal" style="max-width:680px">
+  <div class="modal-h"><h3 id="blog-modal-title">Bài viết mới</h3><button class="mcls" onclick="closeBlogModal()">✕</button></div>
+  <div class="modal-b">
+    <div class="fg" style="margin-bottom:12px">
+      <div class="fgrp fgf"><label class="fl">Tiêu đề</label><input class="fi" id="blog-title" placeholder="Tiêu đề bài viết..."/></div>
+      <div class="fgrp"><label class="fl">Ngày &amp; Giờ</label><input class="fi" type="datetime-local" id="blog-date" step="1"/></div>
+      <div class="fgrp"><label class="fl">Tags (phân cách bằng dấu phẩy)</label><input class="fi" id="blog-tags" placeholder="tâm lý, chiến lược, review..."/></div>
+    </div>
+    <div class="fgrp">
+      <label class="fl">Nội dung</label>
+      <textarea class="fi" id="blog-content" placeholder="Viết suy nghĩ, bài học, chiến lược, cảm xúc... của bạn ở đây."></textarea>
+    </div>
+  </div>
+  <div class="modal-f">
+    <button class="btn btn-danger btn-sm" id="blog-del-btn" style="display:none" onclick="deleteBlog()">Xóa</button>
+    <button class="btn btn-ghost" onclick="closeBlogModal()">Hủy</button>
+    <button class="btn btn-primary" onclick="saveBlog()">Lưu bài viết</button>
+  </div>
+</div>
+</div>
+
 <!-- ══ ROUND REVIEW MODAL ══ -->
 <div class="overlay" id="rnd-review-modal" onclick="closeOvl(event,'rnd-review-modal')">
 <div class="modal" style="max-width:560px">
@@ -704,7 +838,13 @@ const fmt = (v, t) => {
   if (t === 'r2')  return (v >= 0 ? '+' : '') + (+v).toFixed(2) + 'R';
   return v;
 };
-const fmtDate = d => { if (!d) return '—'; const p = d.split('-'); return p[2]+'/'+p[1]; };
+const fmtDate = d => {
+  if (!d) return '—';
+  const p = d.slice(0,10).split('-');
+  const t = d.length > 10 ? ' <span style="font-size:10px;color:var(--muted)">'+d.slice(11,16)+'</span>' : '';
+  return p[2]+'/'+p[1]+t;
+};
+const localDT = () => { const d=new Date(); return new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,19); };
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
 // ══════════════════════════════════════════════════════
@@ -972,7 +1112,7 @@ function toggleTheme() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  $('f-date').value = new Date().toISOString().split('T')[0];
+  $('f-date').value = localDT();
   if (localStorage.getItem('tj_theme') === 'light') {
     document.body.classList.add('light');
     const btn = $('theme-btn');
@@ -1022,16 +1162,20 @@ async function syncFromSheet() {
   if (!API_URL) { showSetup(); return; }
   updateDbStatus('busy', 'Đang đồng bộ...');
   try {
-    const [tradesRes, accRes, rndRes] = await Promise.all([
+    const [tradesRes, accRes, rndRes, maRes, blogRes] = await Promise.all([
       apiGet({ action: 'list' }),
       apiGet({ action: 'listAccounts' }),
-      apiGet({ action: 'listRounds' })
+      apiGet({ action: 'listRounds' }),
+      apiGet({ action: 'listAnalysis' }),
+      apiGet({ action: 'listBlog' })
     ]);
     if (!tradesRes.ok) throw new Error(tradesRes.error || 'Lỗi không xác định');
     T        = tradesRes.data || [];
-    ACCOUNTS = accRes.ok  ? (accRes.data  || []) : ACCOUNTS;
-    ROUNDS   = rndRes.ok  ? (rndRes.data  || []) : ROUNDS;
-    saveAccountsLS(); saveRoundsLS();
+    ACCOUNTS = accRes.ok   ? (accRes.data   || []) : ACCOUNTS;
+    ROUNDS   = rndRes.ok   ? (rndRes.data   || []) : ROUNDS;
+    ANALYSIS = maRes.ok    ? (maRes.data    || []) : ANALYSIS;
+    BLOG     = blogRes.ok  ? (blogRes.data  || []) : BLOG;
+    saveAccountsLS(); saveRoundsLS(); saveAnalysisLS(); saveBlogLS();
     updateDbStatus('ok', `<strong>${T.length} lệnh</strong> · Sheet đã kết nối`);
     renderAll(); renderAccounts(); updateAccFilters(); updateTradeAccSel();
     toast('✓ Đồng bộ xong — ' + T.length + ' lệnh', 'var(--green)');
@@ -1051,6 +1195,8 @@ function goPage(id, btn) {
   if (btn) btn.classList.add('on');
   if (id === 'analytics') renderAnalytics();
   if (id === 'accounts')  renderAccounts();
+  if (id === 'market')  { updateMarketAssetFilter(); renderMarket(); }
+  if (id === 'blog')    renderBlog();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1142,7 +1288,7 @@ function trow(t, full=false) {
     : '—';
   return `<tr class="trow" onclick="showDet('${t.id}')">
     <td class="mono" style="font-weight:700">${t.pair||'—'}</td>
-    <td class="mono" style="color:var(--muted);font-size:11px">${fmtDate(t.date)}</td>
+    <td class="mono" style="color:var(--muted);font-size:11px;white-space:nowrap">${fmtDate(t.date)}</td>
     <td style="font-size:11.5px;color:var(--accent2)">${t.strategy||'—'}</td>
     ${full ? `<td style="font-size:10.5px;color:var(--muted)">${t.tf||'—'}</td>` : ''}
     <td>${t.session?`<span class="badge ${sb}">${t.session}</span>`:'—'}</td>
@@ -1305,7 +1451,7 @@ function closeOvl(e,id) { if(e.target.id===id) document.getElementById(id).class
 function resetForm() {
   selR='';
   updateTradeAccSel();
-  $('f-pair').value='';$('f-date').value=new Date().toISOString().split('T')[0];
+  $('f-pair').value='';$('f-date').value=localDT();
   $('f-strat').value='';$('f-tf').value='M15';
   ['f-entry','f-sl','f-tp','f-exit','f-lot','f-risk','f-rrp','f-rra','f-pnl','f-reason','f-lesson'].forEach(id=>$(id).value='');
   $('f-score').value=75; updSc(75);
@@ -1549,6 +1695,174 @@ function saveRndReview() {
     apiPost({ action: 'update_round', round: rnd })
       .catch(e => toast('Lỗi Sheet: ' + e.message, 'var(--amber)'));
   }
+}
+
+// ══════════════════════════════════════════════════════
+//  MARKET ANALYSIS
+// ══════════════════════════════════════════════════════
+let ANALYSIS  = JSON.parse(localStorage.getItem('tj_analysis') || '[]');
+let BLOG      = JSON.parse(localStorage.getItem('tj_blog')     || '[]');
+let editMaId  = null;
+let editBlogId= null;
+let selMaBias = '';
+
+function saveAnalysisLS() { localStorage.setItem('tj_analysis', JSON.stringify(ANALYSIS)); }
+function saveBlogLS()     { localStorage.setItem('tj_blog',     JSON.stringify(BLOG));     }
+
+// ── Market Analysis Modal ─────────────────────────────
+function openMarketModal(id=null) {
+  editMaId = id;
+  selMaBias = '';
+  $('ma-modal-title').textContent = id ? 'Sửa phân tích' : 'Thêm phân tích';
+  $('ma-del-btn').style.display = id ? '' : 'none';
+  const a = id ? ANALYSIS.find(x=>x.id===id) : null;
+  $('ma-asset').value        = a?.asset        || '';
+  $('ma-tf').value           = a?.timeframe    || 'H4';
+  $('ma-date').value         = a?.date         || localDT();
+  $('ma-levels').value       = a?.keyLevels    || '';
+  $('ma-confluences').value  = a?.confluences  || '';
+  $('ma-invalidation').value = a?.invalidation || '';
+  $('ma-notes').value        = a?.notes        || '';
+  selMaBias = a?.bias || '';
+  document.querySelectorAll('#ma-bias-chips .chip').forEach(c => c.classList.toggle('ca', c.textContent.includes(selMaBias) && !!selMaBias));
+  $('market-modal').classList.add('open');
+}
+function closeMarketModal() { $('market-modal').classList.remove('open'); }
+
+function maBias(el, val) {
+  selMaBias = val;
+  document.querySelectorAll('#ma-bias-chips .chip').forEach(c => c.classList.remove('ca'));
+  el.classList.add('ca');
+}
+
+function saveMarket() {
+  const asset = $('ma-asset').value.trim().toUpperCase();
+  if (!asset) { toast('Nhập asset', 'var(--red)'); return; }
+  const entry = {
+    id: editMaId || uid(),
+    date: $('ma-date').value || localDT(),
+    asset, timeframe: $('ma-tf').value, bias: selMaBias,
+    keyLevels:    $('ma-levels').value.trim(),
+    confluences:  $('ma-confluences').value.trim(),
+    invalidation: $('ma-invalidation').value.trim(),
+    notes:        $('ma-notes').value.trim(),
+    createdAt: editMaId ? (ANALYSIS.find(x=>x.id===editMaId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+  };
+  if (editMaId) { const idx=ANALYSIS.findIndex(x=>x.id===editMaId); if(idx>=0) ANALYSIS[idx]=entry; }
+  else ANALYSIS.unshift(entry);
+  saveAnalysisLS(); closeMarketModal(); renderMarket();
+  updateMarketAssetFilter();
+  toast('✓ Đã lưu phân tích', 'var(--green)');
+  if (API_URL) apiPost({ action: editMaId ? 'update_analysis' : 'add_analysis', analysis: entry })
+    .catch(e => toast('Lỗi Sheet: ' + e.message, 'var(--amber)'));
+}
+
+function deleteMarket() {
+  if (!confirm('Xóa phân tích này?')) return;
+  const id = editMaId;
+  ANALYSIS = ANALYSIS.filter(x=>x.id!==id);
+  saveAnalysisLS(); closeMarketModal(); renderMarket(); updateMarketAssetFilter();
+  toast('Đã xóa', 'var(--amber)');
+  if (API_URL) apiPost({ action: 'delete_analysis', id }).catch(()=>{});
+}
+
+function updateMarketAssetFilter() {
+  const sel = $('maf-asset'); if (!sel) return;
+  const cur = sel.value;
+  const assets = [...new Set(ANALYSIS.map(a=>a.asset).filter(Boolean))];
+  sel.innerHTML = '<option value="">Tất cả asset</option>' + assets.map(a=>`<option${a===cur?' selected':''}>${a}</option>`).join('');
+}
+
+function renderMarket() {
+  const fA = $('maf-asset')?.value || '';
+  const fT = $('maf-tf')?.value   || '';
+  let data = [...ANALYSIS].sort((a,b) => new Date(b.date) - new Date(a.date));
+  if (fA) data = data.filter(x=>x.asset===fA);
+  if (fT) data = data.filter(x=>x.timeframe===fT);
+  const el = $('ma-list');
+  if (!data.length) { el.innerHTML='<div class="empty"><div class="empty-i">⬡</div><div class="empty-m">Chưa có phân tích nào</div></div>'; return; }
+  const biasCls = {Bullish:'bias-bull',Bearish:'bias-bear',Neutral:'bias-neut'};
+  el.innerHTML = '<div class="ma-grid">' + data.map(a => {
+    const bcls = biasCls[a.bias] || 'bny';
+    return `<div class="ma-card" onclick="openMarketModal('${a.id}')">
+      <div class="ma-head">
+        <span class="ma-asset">${a.asset}</span>
+        <span class="ma-tf">${a.timeframe}</span>
+        ${a.bias ? `<span class="badge ${bcls}" style="font-size:8px">${a.bias}</span>` : ''}
+        <span class="ma-date">${fmtDate(a.date)}</span>
+      </div>
+      <div class="ma-body">
+        ${a.keyLevels    ? `<div class="ma-row"><div class="ma-lbl">Key Levels</div><div class="ma-val">${a.keyLevels}</div></div>` : ''}
+        ${a.confluences  ? `<div class="ma-row"><div class="ma-lbl">Confluence</div><div class="ma-val">${a.confluences}</div></div>` : ''}
+        ${a.invalidation ? `<div class="ma-row"><div class="ma-lbl">Invalidation</div><div class="ma-val">${a.invalidation}</div></div>` : ''}
+        ${a.notes        ? `<div class="ma-row"><div class="ma-lbl">Notes</div><div class="ma-val" style="color:var(--muted)">${a.notes}</div></div>` : ''}
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+// ══════════════════════════════════════════════════════
+//  BLOG
+// ══════════════════════════════════════════════════════
+function openBlogModal(id=null) {
+  editBlogId = id;
+  $('blog-modal-title').textContent = id ? 'Sửa bài viết' : 'Bài viết mới';
+  $('blog-del-btn').style.display = id ? '' : 'none';
+  const b = id ? BLOG.find(x=>x.id===id) : null;
+  $('blog-title').value   = b?.title   || '';
+  $('blog-date').value    = b?.date    || localDT();
+  $('blog-tags').value    = b?.tags    || '';
+  $('blog-content').value = b?.content || '';
+  $('blog-modal').classList.add('open');
+}
+function closeBlogModal() { $('blog-modal').classList.remove('open'); }
+
+function saveBlog() {
+  const title = $('blog-title').value.trim();
+  if (!title) { toast('Nhập tiêu đề', 'var(--red)'); return; }
+  const post = {
+    id: editBlogId || uid(),
+    date:    $('blog-date').value    || localDT(),
+    title,
+    tags:    $('blog-tags').value.trim(),
+    content: $('blog-content').value.trim(),
+    createdAt: editBlogId ? (BLOG.find(x=>x.id===editBlogId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+  };
+  if (editBlogId) { const idx=BLOG.findIndex(x=>x.id===editBlogId); if(idx>=0) BLOG[idx]=post; }
+  else BLOG.unshift(post);
+  saveBlogLS(); closeBlogModal(); renderBlog();
+  toast('✓ Đã lưu bài viết', 'var(--green)');
+  if (API_URL) apiPost({ action: editBlogId ? 'update_blog' : 'add_blog', blogPost: post })
+    .catch(e => toast('Lỗi Sheet: ' + e.message, 'var(--amber)'));
+}
+
+function deleteBlog() {
+  if (!confirm('Xóa bài viết này?')) return;
+  const id = editBlogId;
+  BLOG = BLOG.filter(x=>x.id!==id);
+  saveBlogLS(); closeBlogModal(); renderBlog();
+  toast('Đã xóa bài viết', 'var(--amber)');
+  if (API_URL) apiPost({ action: 'delete_blog', id }).catch(()=>{});
+}
+
+function renderBlog() {
+  const el = $('blog-list');
+  const data = [...BLOG].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if (!data.length) { el.innerHTML='<div class="empty"><div class="empty-i">✍</div><div class="empty-m">Chưa có bài viết nào. Hãy ghi lại suy nghĩ đầu tiên!</div></div>'; return; }
+  el.innerHTML = '<div class="blog-list">' + data.map(b => {
+    const tags = b.tags ? b.tags.split(',').map(t=>t.trim()).filter(Boolean) : [];
+    const preview = b.content ? b.content.slice(0, 180) + (b.content.length > 180 ? '...' : '') : '';
+    return `<div class="blog-card" onclick="openBlogModal('${b.id}')">
+      <div class="blog-head">
+        <div>
+          <div class="blog-title">${b.title}</div>
+          <div class="blog-meta">${fmtDate(b.date)}</div>
+        </div>
+      </div>
+      ${tags.length ? `<div class="blog-tags">${tags.map(t=>`<span class="blog-tag">${t}</span>`).join('')}</div>` : ''}
+      ${preview ? `<div class="blog-preview">${preview}</div>` : ''}
+    </div>`;
+  }).join('') + '</div>';
 }
 
 // ══════════════════════════════════════════════════════
