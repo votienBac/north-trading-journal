@@ -62,13 +62,12 @@ function getAllTrades() {
   if (lastRow <= 1) return [];
 
   const data = ws.getRange(1, 1, lastRow, HEADERS.length).getValues();
-  const headers = data[0];
 
   return data.slice(1)
     .filter(row => row[0] !== "" && row[0] !== null)
     .map(row => {
       const obj = {};
-      headers.forEach((h, i) => {
+      HEADERS.forEach((h, i) => {
         let v = row[i];
 
         if (v instanceof Date) {
