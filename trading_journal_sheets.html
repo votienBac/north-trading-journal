@@ -250,6 +250,12 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
 /* Round progress bar */
 .rnd-prog{height:3px;background:var(--bg4);border-radius:2px;margin-top:4px;overflow:hidden}
 .rnd-prog-b{height:100%;border-radius:2px;transition:width .4s}
+/* Emotion notes */
+.emo-entry{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:6px;border:1px solid var(--border)}
+.emo-moment{font-size:9.5px;font-weight:700;font-family:var(--mono);color:var(--accent2);text-transform:uppercase;letter-spacing:.07em;flex-shrink:0;min-width:100px;margin-top:2px;line-height:1.4}
+.emo-text{font-size:12px;color:var(--text);flex:1;line-height:1.5}
+.emo-rm{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:4px;flex-shrink:0;line-height:1}
+.emo-rm:hover{color:var(--red)}
 </style>
 </head>
 <body>
@@ -593,6 +599,29 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
       <div class="fgrp"><label class="fl">Bài học</label><textarea class="fi" id="f-lesson" placeholder="Nếu làm lại sẽ làm gì khác?"></textarea></div>
     </div>
 
+    <div class="fsec">Cảm xúc trong lệnh</div>
+    <div id="emo-list" style="margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <div class="fgrp" style="flex-shrink:0;width:165px">
+        <label class="fl">Thời điểm</label>
+        <select class="fi" id="emo-moment">
+          <option value="Trước vào lệnh">Trước vào lệnh</option>
+          <option value="Khi vào lệnh">Khi vào lệnh</option>
+          <option value="Giá chạy thuận">Giá chạy thuận</option>
+          <option value="Giá pull-back">Giá pull-back</option>
+          <option value="SL gần hit">SL gần hit</option>
+          <option value="TP gần đạt">TP gần đạt</option>
+          <option value="Sau khi đóng">Sau khi đóng</option>
+          <option value="Khác">Khác</option>
+        </select>
+      </div>
+      <div class="fgrp" style="flex:1">
+        <label class="fl">Cảm xúc / Suy nghĩ</label>
+        <input class="fi" id="emo-text" placeholder="Mô tả cảm xúc, suy nghĩ của bạn tại thời điểm đó..."/>
+      </div>
+      <button class="btn btn-ghost btn-sm" type="button" onclick="addEmoEntry()" style="flex-shrink:0;margin-bottom:1px">+ Ghi</button>
+    </div>
+
   </div>
   <div class="modal-f">
     <button class="btn btn-ghost" onclick="closeTrade()">Hủy</button>
@@ -613,6 +642,43 @@ textarea.fi{resize:vertical;min-height:62px;line-height:1.5}
     <button class="btn btn-danger btn-sm" id="det-del">Xóa</button>
     <button class="btn btn-ghost btn-sm" id="det-edit">Sửa</button>
     <button class="btn btn-ghost" onclick="closeDet()">Đóng</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ ROUND REVIEW MODAL ══ -->
+<div class="overlay" id="rnd-review-modal" onclick="closeOvl(event,'rnd-review-modal')">
+<div class="modal" style="max-width:560px">
+  <div class="modal-h"><h3 id="rrv-title">Tổng kết vòng thi</h3><button class="mcls" onclick="closeRndReview()">✕</button></div>
+  <div class="modal-b">
+    <div id="rrv-stats" style="margin-bottom:14px"></div>
+
+    <div class="fsec" style="margin-top:0">Cảm xúc &amp; Tâm lý</div>
+    <div class="fgrp" style="margin-bottom:14px">
+      <label class="fl">Bạn cảm thấy thế nào trong vòng thi này?</label>
+      <textarea class="fi" id="rrv-emotion" placeholder="Áp lực? Tự tin? Sợ hãi? Tham lam? Mô tả hành trình cảm xúc của bạn..." style="min-height:80px"></textarea>
+    </div>
+
+    <div class="fsec">Lỗi &amp; Nhận xét</div>
+    <div id="rrv-errors" style="margin-bottom:10px"></div>
+    <div class="fgrp" style="margin-bottom:14px">
+      <label class="fl">Vì sao bạn mắc những lỗi đó?</label>
+      <textarea class="fi" id="rrv-err-note" placeholder="Tâm lý nào khiến bạn phá plan? Điều gì cần thay đổi?" style="min-height:70px"></textarea>
+    </div>
+
+    <div class="fsec">Bài học &amp; Cải thiện</div>
+    <div class="fgrp" style="margin-bottom:12px">
+      <label class="fl">Bài học quan trọng nhất</label>
+      <textarea class="fi" id="rrv-lesson" placeholder="Điều quan trọng nhất bạn học được từ vòng thi này?" style="min-height:70px"></textarea>
+    </div>
+    <div class="fgrp">
+      <label class="fl">Sẽ cải thiện gì ở vòng tiếp theo?</label>
+      <textarea class="fi" id="rrv-improve" placeholder="Cụ thể, có thể đo lường được — VD: Không move SL, chỉ trade Kill Zone..." style="min-height:70px"></textarea>
+    </div>
+  </div>
+  <div class="modal-f">
+    <button class="btn btn-ghost" onclick="closeRndReview()">Hủy</button>
+    <button class="btn btn-primary" onclick="saveRndReview()">Lưu tổng kết</button>
   </div>
 </div>
 </div>
@@ -640,6 +706,36 @@ const fmt = (v, t) => {
 };
 const fmtDate = d => { if (!d) return '—'; const p = d.split('-'); return p[2]+'/'+p[1]; };
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+// ══════════════════════════════════════════════════════
+//  EMOTION NOTES — Trade form state
+// ══════════════════════════════════════════════════════
+let tradeEmotions = [];
+
+function addEmoEntry() {
+  const text = $('emo-text').value.trim();
+  if (!text) { toast('Nhập cảm xúc / suy nghĩ', 'var(--amber)'); return; }
+  tradeEmotions.push({ moment: $('emo-moment').value, text });
+  $('emo-text').value = '';
+  renderEmoList();
+}
+
+function removeEmoEntry(i) {
+  tradeEmotions.splice(i, 1);
+  renderEmoList();
+}
+
+function renderEmoList() {
+  const el = $('emo-list'); if (!el) return;
+  if (!tradeEmotions.length) { el.innerHTML = ''; return; }
+  el.innerHTML = tradeEmotions.map((e, i) =>
+    `<div class="emo-entry">
+      <span class="emo-moment">${e.moment}</span>
+      <span class="emo-text">${e.text}</span>
+      <button class="emo-rm" onclick="removeEmoEntry(${i})" title="Xóa">✕</button>
+    </div>`
+  ).join('');
+}
 
 // ══════════════════════════════════════════════════════
 //  ACCOUNTS & ROUNDS — State + CRUD
@@ -687,14 +783,20 @@ function pickColor(el, color) {
 function saveAccount() {
   const name = $('a-name').value.trim();
   if (!name) { toast('Nhập tên tài khoản', 'var(--red)'); return; }
+  let acc;
   if (editAccId) {
-    const acc = getAccById(editAccId);
+    acc = getAccById(editAccId);
     if (acc) { acc.name=name; acc.firm=$('a-firm').value.trim(); acc.balance=parseFloat($('a-bal').value)||0; acc.color=selAccColor; }
   } else {
-    ACCOUNTS.push({ id:uid(), name, firm:$('a-firm').value.trim(), balance:parseFloat($('a-bal').value)||0, color:selAccColor, createdAt:new Date().toISOString() });
+    acc = { id:uid(), name, firm:$('a-firm').value.trim(), balance:parseFloat($('a-bal').value)||0, color:selAccColor, createdAt:new Date().toISOString() };
+    ACCOUNTS.push(acc);
   }
   saveAccountsLS(); closeAccModal(); renderAccounts(); updateAccFilters(); updateTradeAccSel();
   toast('✓ Đã lưu tài khoản', 'var(--green)');
+  if (API_URL && acc) {
+    apiPost({ action: editAccId ? 'update_account' : 'add_account', account: acc })
+      .catch(e => toast('Lỗi Sheet: ' + e.message, 'var(--amber)'));
+  }
 }
 
 function deleteAcc(id) {
@@ -703,6 +805,10 @@ function deleteAcc(id) {
   ROUNDS   = ROUNDS.filter(r => r.accountId !== id);
   saveAccountsLS(); saveRoundsLS(); renderAccounts(); updateAccFilters(); updateTradeAccSel();
   toast('Đã xóa tài khoản', 'var(--amber)');
+  if (API_URL) {
+    apiPost({ action: 'delete_account', id })
+      .catch(e => toast('Lỗi Sheet: ' + e.message, 'var(--amber)'));
+  }
 }
 
 // ── Round Modal ──────────────────────────────────────
@@ -723,14 +829,20 @@ function closeRndModal() { $('rnd-modal').classList.remove('open'); }
 function saveRound() {
   const name = $('r-name').value.trim();
   if (!name) { toast('Nhập tên vòng thi', 'var(--red)'); return; }
+  let rnd;
   if (editRndId) {
-    const rnd = getRndById(editRndId);
+    rnd = getRndById(editRndId);
     if (rnd) { rnd.name=name; rnd.phase=$('r-phase').value; rnd.startDate=$('r-start').value; rnd.initialBalance=parseFloat($('r-init').value)||0; rnd.targetPct=parseFloat($('r-target').value)||10; rnd.maxDD=parseFloat($('r-maxdd').value)||10; }
   } else {
-    ROUNDS.push({ id:uid(), accountId:editRndAccId, name, phase:$('r-phase').value, startDate:$('r-start').value, initialBalance:parseFloat($('r-init').value)||0, targetPct:parseFloat($('r-target').value)||10, maxDD:parseFloat($('r-maxdd').value)||10, status:'active', createdAt:new Date().toISOString() });
+    rnd = { id:uid(), accountId:editRndAccId, name, phase:$('r-phase').value, startDate:$('r-start').value, initialBalance:parseFloat($('r-init').value)||0, targetPct:parseFloat($('r-target').value)||10, maxDD:parseFloat($('r-maxdd').value)||10, status:'active', createdAt:new Date().toISOString() };
+    ROUNDS.push(rnd);
   }
   saveRoundsLS(); closeRndModal(); renderAccounts();
   toast('✓ Đã lưu vòng thi', 'var(--green)');
+  if (API_URL && rnd) {
+    apiPost({ action: editRndId ? 'update_round' : 'add_round', round: rnd })
+      .catch(e => toast('Lỗi Sheet: ' + e.message, 'var(--amber)'));
+  }
 }
 
 function cycleRoundStatus(rndId) {
@@ -740,6 +852,10 @@ function cycleRoundStatus(rndId) {
   saveRoundsLS(); renderAccounts();
   const lbl = {active:'Đang thi',passed:'Đã PASS ✓',failed:'Đã FAIL ✕'};
   toast(lbl[rnd.status], rnd.status==='passed'?'var(--green)':rnd.status==='failed'?'var(--red)':'var(--amber)');
+  if (API_URL) {
+    apiPost({ action: 'update_round', round: rnd })
+      .catch(e => toast('Lỗi Sheet: ' + e.message, 'var(--amber)'));
+  }
 }
 
 // ── Render Accounts Page ─────────────────────────────
@@ -767,6 +883,7 @@ function renderAccounts() {
             <span class="rnd-cnt" style="color:${pnlColor}">${fmt(pnlR,'r')}</span>
             <span class="rnd-cnt">${rc}L</span>
             <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px;margin-left:2px" onclick="event.stopPropagation();cycleRoundStatus('${r.id}')" title="Đổi trạng thái">⟳</button>
+            <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px;${r.review?'color:var(--accent2);border-color:rgba(124,106,247,.3)':''}" onclick="event.stopPropagation();openRndReview('${r.id}')" title="Tổng kết vòng thi">${r.review?'★':'☆'} Tổng kết</button>
           </div>`;
         }).join('')
       : '<div style="font-size:12px;color:var(--hint);padding:3px 7px">Chưa có vòng thi — thêm vòng thi đầu tiên</div>';
@@ -905,11 +1022,18 @@ async function syncFromSheet() {
   if (!API_URL) { showSetup(); return; }
   updateDbStatus('busy', 'Đang đồng bộ...');
   try {
-    const data = await apiGet({ action: 'list' });
-    if (!data.ok) throw new Error(data.error || 'Lỗi không xác định');
-    T = data.data || [];
+    const [tradesRes, accRes, rndRes] = await Promise.all([
+      apiGet({ action: 'list' }),
+      apiGet({ action: 'listAccounts' }),
+      apiGet({ action: 'listRounds' })
+    ]);
+    if (!tradesRes.ok) throw new Error(tradesRes.error || 'Lỗi không xác định');
+    T        = tradesRes.data || [];
+    ACCOUNTS = accRes.ok  ? (accRes.data  || []) : ACCOUNTS;
+    ROUNDS   = rndRes.ok  ? (rndRes.data  || []) : ROUNDS;
+    saveAccountsLS(); saveRoundsLS();
     updateDbStatus('ok', `<strong>${T.length} lệnh</strong> · Sheet đã kết nối`);
-    renderAll();
+    renderAll(); renderAccounts(); updateAccFilters(); updateTradeAccSel();
     toast('✓ Đồng bộ xong — ' + T.length + ' lệnh', 'var(--green)');
   } catch(e) {
     updateDbStatus('err', 'Lỗi kết nối Sheet');
@@ -1191,6 +1315,7 @@ function resetForm() {
   document.querySelectorAll('#c-dir .chip').forEach(c=>c.classList.remove('ca'));
   document.querySelectorAll('#c-ok .chip').forEach(c=>c.classList.remove('cg'));
   document.querySelectorAll('#c-err .chip').forEach(c=>c.classList.remove('cr'));
+  tradeEmotions = []; renderEmoList();
 }
 
 function fillForm(t) {
@@ -1209,6 +1334,9 @@ function fillForm(t) {
   const errs  = Array.isArray(t.errors)     ? t.errors     : (t.errors||'').split(';').map(x=>x.trim()).filter(Boolean);
   conds.forEach(v=>document.querySelectorAll('#c-ok .chip').forEach(c=>{if(c.textContent===v)c.classList.add('cg');}));
   errs.forEach(v=>document.querySelectorAll('#c-err .chip').forEach(c=>{if(c.textContent===v)c.classList.add('cr');}));
+  try { tradeEmotions = Array.isArray(t.emotionNotes) ? [...t.emotionNotes] : (t.emotionNotes && typeof t.emotionNotes === 'string' && t.emotionNotes.startsWith('[') ? JSON.parse(t.emotionNotes) : []); }
+  catch(e) { tradeEmotions = []; }
+  renderEmoList();
 }
 
 function cs1(el,g){document.querySelectorAll(`#c-${g} .chip`).forEach(c=>c.classList.remove('ca'));el.classList.toggle('ca');}
@@ -1302,6 +1430,7 @@ async function saveTrade() {
     conditions, errors,
     reason:   $('f-reason').value.trim(),
     lesson:   $('f-lesson').value.trim(),
+    emotionNotes: tradeEmotions.length ? tradeEmotions : null,
     updatedAt: new Date().toISOString()
   };
 
@@ -1351,7 +1480,8 @@ function showDet(id) {
     ${conds.length?`<div style="margin-bottom:10px"><div class="fl" style="margin-bottom:5px">Điều kiện</div><div class="chips">${conds.map(c=>`<span class="chip cg" style="pointer-events:none">${c}</span>`).join('')}</div></div>`:''}
     ${errs.length?`<div style="margin-bottom:10px"><div class="fl" style="margin-bottom:5px">Lỗi</div><div class="chips">${errs.map(e=>`<span class="chip cr" style="pointer-events:none">${e}</span>`).join('')}</div></div>`:''}
     ${t.reason?`<div style="margin-bottom:10px"><div class="fl" style="margin-bottom:4px">Lý do</div><div style="font-size:12px;background:var(--bg3);padding:9px 11px;border-radius:8px;color:var(--muted);line-height:1.6">${t.reason}</div></div>`:''}
-    ${t.lesson?`<div><div class="fl" style="margin-bottom:4px">Bài học</div><div style="font-size:12px;background:var(--bg3);padding:9px 11px;border-radius:8px;color:var(--muted);line-height:1.6">${t.lesson}</div></div>`:''}`;
+    ${t.lesson?`<div style="margin-bottom:10px"><div class="fl" style="margin-bottom:4px">Bài học</div><div style="font-size:12px;background:var(--bg3);padding:9px 11px;border-radius:8px;color:var(--muted);line-height:1.6">${t.lesson}</div></div>`:''}
+    ${(()=>{let en=[];try{en=Array.isArray(t.emotionNotes)?t.emotionNotes:(t.emotionNotes&&typeof t.emotionNotes==='string'&&t.emotionNotes.startsWith('[')?JSON.parse(t.emotionNotes):[]);}catch(e){}return en.length?`<div><div class="fl" style="margin-bottom:5px">Cảm xúc trong lệnh</div>${en.map(e=>`<div class="emo-entry"><span class="emo-moment">${e.moment}</span><span class="emo-text">${e.text}</span></div>`).join('')}</div>`:''})()}`;
   $('det-del').onclick = async () => {
     if(!confirm('Xóa lệnh này?'))return;
     T=T.filter(x=>x.id!==id); renderAll(); closeDet();
@@ -1363,6 +1493,63 @@ function showDet(id) {
   $('det-modal').classList.add('open');
 }
 function closeDet(){$('det-modal').classList.remove('open');}
+
+// ══════════════════════════════════════════════════════
+//  ROUND REVIEW
+// ══════════════════════════════════════════════════════
+let reviewRndId = null;
+
+function openRndReview(rndId) {
+  reviewRndId = rndId;
+  const rnd = getRndById(rndId); if (!rnd) return;
+  $('rrv-title').textContent = 'Tổng kết: ' + rnd.name;
+
+  const trades = tradesForFilter(rnd.accountId, rndId);
+  const s = calcStats(trades);
+  const avgScore = s ? Math.round(trades.reduce((a,t)=>a+(t.score||0),0)/s.n) : 0;
+  $('rrv-stats').innerHTML = s
+    ? `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+        <div style="text-align:center"><div style="font-size:9px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;margin-bottom:3px">Lệnh</div><div style="font-size:18px;font-weight:800;font-family:var(--mono)">${s.n}</div></div>
+        <div style="text-align:center"><div style="font-size:9px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;margin-bottom:3px">Win Rate</div><div style="font-size:18px;font-weight:800;font-family:var(--mono);color:${s.wr>=0.4?'var(--green)':'var(--red)'}">${Math.round(s.wr*100)}%</div></div>
+        <div style="text-align:center"><div style="font-size:9px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;margin-bottom:3px">P&L</div><div style="font-size:18px;font-weight:800;font-family:var(--mono);color:${s.pnl>=0?'var(--green)':'var(--red)'}">${fmt(s.pnl,'r')}</div></div>
+        <div style="text-align:center"><div style="font-size:9px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;margin-bottom:3px">Avg Score</div><div style="font-size:18px;font-weight:800;font-family:var(--mono);color:${avgScore>=75?'var(--green)':avgScore>=50?'var(--amber)':'var(--red)'}">${avgScore}%</div></div>
+      </div>`
+    : '<div style="font-size:12px;color:var(--muted);padding:8px;background:var(--bg3);border-radius:8px">Chưa có lệnh nào trong vòng thi này</div>';
+
+  const allErr = trades.flatMap(t=>Array.isArray(t.errors)?t.errors:(t.errors||'').split(';').map(e=>e.trim()).filter(Boolean));
+  const freq = {}; allErr.forEach(e=>freq[e]=(freq[e]||0)+1);
+  const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  $('rrv-errors').innerHTML = top.length
+    ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">${top.map(([e,c])=>`<span class="chip cr" style="pointer-events:none">${e} <span style="opacity:.55">${c}x</span></span>`).join('')}</div>`
+    : '<div style="font-size:12px;color:var(--green);margin-bottom:10px">Không có lỗi nào — xuất sắc!</div>';
+
+  const rv = rnd.review || {};
+  $('rrv-emotion').value  = rv.emotion  || '';
+  $('rrv-err-note').value = rv.errNote  || '';
+  $('rrv-lesson').value   = rv.lesson   || '';
+  $('rrv-improve').value  = rv.improve  || '';
+
+  $('rnd-review-modal').classList.add('open');
+}
+
+function closeRndReview() { $('rnd-review-modal').classList.remove('open'); }
+
+function saveRndReview() {
+  const rnd = getRndById(reviewRndId); if (!rnd) return;
+  rnd.review = {
+    emotion:  $('rrv-emotion').value.trim(),
+    errNote:  $('rrv-err-note').value.trim(),
+    lesson:   $('rrv-lesson').value.trim(),
+    improve:  $('rrv-improve').value.trim(),
+    updatedAt: new Date().toISOString()
+  };
+  saveRoundsLS(); closeRndReview(); renderAccounts();
+  toast('Đã lưu tổng kết vòng thi', 'var(--green)');
+  if (API_URL) {
+    apiPost({ action: 'update_round', round: rnd })
+      .catch(e => toast('Lỗi Sheet: ' + e.message, 'var(--amber)'));
+  }
+}
 
 // ══════════════════════════════════════════════════════
 //  TOAST
