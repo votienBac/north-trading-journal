@@ -72,7 +72,12 @@ function getAllTrades() {
         let v = row[i];
 
         if (v instanceof Date) {
-          v = Utilities.formatDate(v, "UTC", "yyyy-MM-dd");
+          // Preserve time component if non-zero (datetime-local fields)
+          if (v.getUTCHours() || v.getUTCMinutes() || v.getUTCSeconds()) {
+            v = Utilities.formatDate(v, Session.getScriptTimeZone(), "yyyy-MM-dd'T'HH:mm:ss");
+          } else {
+            v = Utilities.formatDate(v, "UTC", "yyyy-MM-dd");
+          }
         }
 
         if ((h === "conditions" || h === "errors" || h === "emotionNotes") && typeof v === "string" && v !== "") {

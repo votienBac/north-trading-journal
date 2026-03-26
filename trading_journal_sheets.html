@@ -841,7 +841,8 @@ const fmt = (v, t) => {
 const fmtDate = d => {
   if (!d) return '—';
   const p = d.slice(0,10).split('-');
-  const t = d.length > 10 ? ' <span style="font-size:10px;color:var(--muted)">'+d.slice(11,16)+'</span>' : '';
+  const hhmm = d.length > 10 ? d.slice(11,16) : '';
+  const t = hhmm && hhmm !== '00:00' ? ' <span style="font-size:10px;color:var(--muted)">'+hhmm+'</span>' : '';
   return p[2]+'/'+p[1]+t;
 };
 const localDT = () => { const d=new Date(); return new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,19); };
@@ -1170,11 +1171,26 @@ async function syncFromSheet() {
       apiGet({ action: 'listBlog' })
     ]);
     if (!tradesRes.ok) throw new Error(tradesRes.error || 'Lỗi không xác định');
-    T        = tradesRes.data || [];
-    ACCOUNTS = accRes.ok   ? (accRes.data   || []) : ACCOUNTS;
-    ROUNDS   = rndRes.ok   ? (rndRes.data   || []) : ROUNDS;
-    ANALYSIS = maRes.ok    ? (maRes.data    || []) : ANALYSIS;
-    BLOG     = blogRes.ok  ? (blogRes.data  || []) : BLOG;
+    T = tradesRes.data || [];
+
+    // Smart merge: nếu Sheet trả về rỗng nhưng local có data → push local lên Sheet
+    // (xảy ra khi user tạo accounts/rounds trước khi deploy code mới)
+    if (accRes.ok) {
+      if (accRes.data?.length) {
+        ACCOUNTS = accRes.data;
+      } else if (ACCOUNTS.length) {
+        ACCOUNTS.forEach(a => apiPost({action:'add_account', account:a}).catch(()=>{}));
+      }
+    }
+    if (rndRes.ok) {
+      if (rndRes.data?.length) {
+        ROUNDS = rndRes.data;
+      } else if (ROUNDS.length) {
+        ROUNDS.forEach(r => apiPost({action:'add_round', round:r}).catch(()=>{}));
+      }
+    }
+    if (maRes.ok   && maRes.data?.length)    ANALYSIS = maRes.data;
+    if (blogRes.ok && blogRes.data?.length)  BLOG     = blogRes.data;
     saveAccountsLS(); saveRoundsLS(); saveAnalysisLS(); saveBlogLS();
     updateDbStatus('ok', `<strong>${T.length} lệnh</strong> · Sheet đã kết nối`);
     renderAll(); renderAccounts(); updateAccFilters(); updateTradeAccSel();
