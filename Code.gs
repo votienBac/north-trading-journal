@@ -12,8 +12,7 @@ const BLOG_SHEET      = "blog";
 const ACCOUNTS_HEADERS = ["id", "name", "firm", "balance", "color", "createdAt"];
 const ROUNDS_HEADERS   = ["id", "accountId", "name", "phase", "startDate",
                            "initialBalance", "targetPct", "maxDD", "status", "review", "createdAt"];
-const ANALYSIS_HEADERS = ["id", "date", "asset", "timeframe", "bias",
-                           "keyLevels", "confluences", "invalidation", "notes", "createdAt"];
+const ANALYSIS_HEADERS = ["id", "date", "asset", "timeframes", "overallNotes", "createdAt"];
 const BLOG_HEADERS     = ["id", "date", "title", "tags", "content", "createdAt"];
 
 const HEADERS = [
@@ -202,8 +201,33 @@ function _readSimpleSheet(ws, headers, numFields) {
 }
 
 // ── Analysis ─────────────────────────────────────────────
-function getAllAnalysis() { return _readSimpleSheet(getAnalysisSheet(), ANALYSIS_HEADERS, []); }
-function analysisToRow(a) { return ANALYSIS_HEADERS.map(h => a[h] ?? ""); }
+function getAllAnalysis() {
+  const ws = getAnalysisSheet();
+  const lastRow = ws.getLastRow();
+  if (lastRow <= 1) return [];
+  const data = ws.getRange(1, 1, lastRow, ANALYSIS_HEADERS.length).getValues();
+  return data.slice(1)
+    .filter(row => row[0] !== "" && row[0] !== null)
+    .map(row => {
+      const obj = {};
+      ANALYSIS_HEADERS.forEach((h, i) => {
+        let v = row[i];
+        if (v instanceof Date) v = Utilities.formatDate(v, "UTC", "yyyy-MM-dd");
+        if (h === "timeframes" && typeof v === "string" && v !== "") {
+          try { v = JSON.parse(v); } catch(e) { v = []; }
+        }
+        obj[h] = v;
+      });
+      return obj;
+    });
+}
+function analysisToRow(a) {
+  return ANALYSIS_HEADERS.map(h => {
+    let v = a[h] ?? "";
+    if (h === "timeframes" && Array.isArray(v)) v = JSON.stringify(v);
+    return v;
+  });
+}
 
 // ── Blog ─────────────────────────────────────────────────
 function getAllBlog()  { return _readSimpleSheet(getBlogSheet(), BLOG_HEADERS, []); }
